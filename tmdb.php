@@ -10,6 +10,8 @@ function hasFemaleDirector($movieName, $movieYear) {
   if (!isset($searchData['results'][0]['id'])) {
     die("Movie not found.\n");
   }
+
+  echo print_r($searchData['results'][0]);
   
   $movieId = $searchData['results'][0]['id'];
   // original_language

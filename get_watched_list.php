@@ -1,8 +1,6 @@
 <?php
 require_once("tmdb.php");
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1); 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
 
@@ -41,24 +39,10 @@ function handleWatchlist($file) {
         }
     
         fclose($handle);
-
-        $total = 0;
-        $female = 0;
-        foreach ($data as $movie) {
-            if (hasFemaleDirector($movie['Name'], $movie['Year'])) {
-                $female += 1;
-            }
-            $total += 1;
-        }
-        // Output the resulting array for debugging (optional)
-        
     
         // Example: Return JSON response
         header('Content-Type: application/json');
-        echo json_encode([
-            'total' => $total,
-            'female' => $female,
-        ]);
+        echo json_encode($data);
       } else {
         http_response_code(500);
         echo 'Failed to open uploaded file.';
