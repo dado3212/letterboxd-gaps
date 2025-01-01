@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Letterboxd Stats</title>
         <style>
-            #drop-area {
+            .drop-area {
                 border: 2px dashed #ccc;
                 border-radius: 10px;
                 width: 300px;
@@ -18,7 +18,7 @@
                 text-align: center;
                 color: #333;
             }
-            #drop-area.hover {
+            .drop-area.hover {
                 border-color: #666;
                 background-color: #f7f7f7;
             }
@@ -30,13 +30,18 @@
 
             Go to <a href="https://letterboxd.com/settings/data/" target="_blank">https://letterboxd.com/settings/data/</a> and export your data. Drag and drop the .zip here.
         </p>
-        <div id="drop-area">
+        <div class="drop-area">
             Drag & Drop your .zip file here
         </div>
 
-        <script>
-            const dropArea = document.getElementById('drop-area');
+        <div class="drop-area">
+            Drag & Drop your .csv file here
+        </div>
 
+        <script>
+const dropAreas = document.querySelectorAll('.drop-area');
+
+dropAreas.forEach(dropArea => {
             // Prevent default behaviors for drag events
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, e => e.preventDefault());
@@ -54,15 +59,22 @@
             // Handle file drop
             dropArea.addEventListener('drop', event => {
             const files = event.dataTransfer.files;
-            if (files.length && files[0].type === 'application/zip') {
+            if (files.length !== 1) {
+                alert('Please upload a valid .zip or .csv file.');
+                return;
+            }
+            if (files[0].type === 'application/zip') {
+                uploadFile(files[0]);
+            } else if (files[0].type === 'text/csv') {
                 uploadFile(files[0]);
             } else {
-                alert('Please upload a valid .zip file.');
+                alert(files[0].type + ' is not .csv or .zip');
             }
             });
+        });
 
-            // File upload
-            function uploadFile(file) {
+        // File upload
+        function uploadFile(file) {
             const formData = new FormData();
             formData.append('file', file);
 
@@ -72,12 +84,13 @@
             })
             .then(response => response.text())
             .then(data => {
-                alert(`Server Response: ${data}`);
+                console.log(data);
+                // alert(`Server Response: ${data}`);
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-            }
+        }
         </script>
     </body>
 </html>

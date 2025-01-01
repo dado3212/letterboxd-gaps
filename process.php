@@ -1,18 +1,71 @@
 <?php
+require_once("tmdb.php");
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1); 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
-  
-  // Ensure the file is a .zip
-  if (pathinfo($file['name'], PATHINFO_EXTENSION) !== 'zip') {
+
+  if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'csv') {
+    handleWatchlist($file);
+    exit;
+  } else if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'zip') {
+    handleZip($file);
+  } else {
     http_response_code(400);
     echo 'Invalid file type. Please upload a .zip file.';
     exit;
   }
+} else {
+    http_response_code(400);
+    echo 'No file uploaded.';
+}
 
-  var_export($file);
+function handleWatchlist($file) {
+    if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
+        $data = []; // Array to store the CSV data as a dictionary
+    
+        // Get the header row
+        $headers = fgetcsv($handle);
+    
+        if ($headers === false) {
+          http_response_code(400);
+          echo 'The CSV file is empty or invalid.';
+          fclose($handle);
+          exit;
+        }
+    
+        // Process each row of the CSV
+        while (($row = fgetcsv($handle)) !== false) {
+          $data[] = array_combine($headers, $row);
+        }
+    
+        fclose($handle);
 
+        $total = 0;
+        $female = 0;
+        foreach ($data as $movie) {
+            if (hasFemaleDirector($movie['Name'], $movie['Year'])) {
+                $female += 1;
+            }
+            $total += 1;
+        }
+        // Output the resulting array for debugging (optional)
+        
+    
+        // Example: Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'total' => $total,
+            'female' => $female,
+        ]);
+      } else {
+        http_response_code(500);
+        echo 'Failed to open uploaded file.';
+      }
+}
+
+function handleZip($file) {
   // Open the .zip file directly from the uploaded file stream
   $zip = new ZipArchive();
   if ($zip->open($file['tmp_name']) === TRUE) {
@@ -40,7 +93,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     http_response_code(500);
     echo 'Failed to open .zip file.';
   }
-} else {
-  http_response_code(400);
-  echo 'No file uploaded.';
 }
