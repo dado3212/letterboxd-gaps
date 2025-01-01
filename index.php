@@ -31,14 +31,24 @@
                 display: flex;
                 max-width: 800px;
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 4px;
                 margin: 0 auto;
 
                 .movie {
-                    width: 20px;
+                    width: 30px;
                     height: 50px;
                     border: 1px solid;
                     border-radius: 4px;
+                    overflow: hidden;
+
+                    span {
+                        font-size: 0.4em;
+                        display: block;
+                        white-space: nowrap;
+                        transform-origin: 0;
+                        transform: rotate(61deg);
+                        margin: -1px 0 0 4px;
+                    }
                 }
             }
         </style>
