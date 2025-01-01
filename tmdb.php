@@ -14,21 +14,25 @@ function getMovieInfo($movieName, $movieYear) {
   $movieId = $searchData['results'][0]['id'];
 
   $info = [
-    'poster' => 'https://image.tmdb.org/t/p/w500' . $searchData['results'][0]['poster_path'],
-    'id' => $movieId,
+    'poster' => $searchData['results'][0]['poster_path'],
+    'tmdb_id' => $movieId,
+    'language' => $searchData['results'][0]['original_language'],
   ];
   
   // Step 2: Get the movie credits
-  $creditsUrl = "https://api.themoviedb.org/3/movie/$movieId/credits?api_key=".TMDB_API_KEY;
+  $additionalURL = "https://api.themoviedb.org/3/movie/$movieId?append_to_response=credits&api_key=".TMDB_API_KEY;
+  $additionalData = json_decode(file_get_contents($additionalURL), true);
+
+  $info['imdb_id'] = $additionalData['imdb_id'];
+  $info['production_countries'] = array_unique(array_map(function($company) {
+    return $company['origin_country'];
+  }, $additionalData['production_companies']));
   
-  $creditsResponse = file_get_contents($creditsUrl);
-  $creditsData = json_decode($creditsResponse, true);
-  
-  $female_directors = array_filter($creditsData['crew'], function ($crewMember) {
+  $female_directors = array_filter($additionalData['credits']['crew'], function ($crewMember) {
     return $crewMember['job'] === 'Director' && $crewMember['gender'] === 1;
   });
 
-  $info['hasFemaleDirector'] = count($female_directors) > 0;
+  $info['has_female_director'] = count($female_directors) > 0;
   
   return $info;
 }

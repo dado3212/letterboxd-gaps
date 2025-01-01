@@ -37,14 +37,9 @@
                 .movie {
                     width: 30px;
                     height: 44px;
-                    border: 1px solid;
                     border-radius: 4px;
                     overflow: hidden;
                     box-sizing: border-box;
-
-                    &[data-id] {
-                        border: none;
-                    }
 
                     span {
                         font-size: 0.4em;
@@ -110,6 +105,9 @@
             const formData = new FormData();
             formData.append('file', file);
 
+            const container = document.getElementById('movies');
+            container.innerHTML = '';
+
             fetch('get_watched_list.php', {
                 method: 'POST',
                 body: formData
@@ -119,65 +117,18 @@
                 console.log(data);
                 const movies = JSON.parse(data);
 
-                const container = document.getElementById('movies');
                 movies.forEach(movie => {
                     const movieDiv = document.createElement('div');
                     movieDiv.className = 'movie';
-                    movieDiv.setAttribute('data-name', movie.Name);
-                    movieDiv.setAttribute('data-year', movie.Year);
                     movieDiv.innerHTML = `
-                        <span>${movie.Name} (${movie.Year})</span>
+                        <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
                     `;
                     container.appendChild(movieDiv);
                 });
-                fetchPostersAndInfo();
                 // alert(`Server Response: ${data}`);
             })
             .catch(error => {
                 console.error('Error:', error);
-            });
-        }
-
-        function fetchPostersAndInfo() {
-            // For each poster we'll start a request to get
-            // - picture
-            // - country
-            // - language
-            // - female director
-            const movies = document.querySelectorAll('.movie');
-
-            // Create divs for each movie
-            const fetchPromises = Array.from(movies).map(movie => {
-                // if (movie.getAttribute('data-name') !== 'Snowpiercer') {
-                //     return;
-                // }
-                return fetch('get_movie_info.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        name: movie.getAttribute('data-name'),
-                        year: movie.getAttribute('data-year'),
-                    }).toString(),
-                })
-                .then(response => response.text())
-                .then(data => {
-                    const info = JSON.parse(data);
-                    movie.setAttribute('data-id', info.id);
-                    movie.setAttribute('data-femaledirector', info.hasFemaleDirector);
-                    movie.innerHTML = '<img src="' + info['poster'] + '" alt="' + movie.getAttribute('data-name') + '(' + movie.getAttribute('data-year')+')">'; 
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            });
-            Promise.all(fetchPromises)
-            .then(() => {
-                console.log('All fetch operations completed');
-            })
-            .catch(error => {
-                console.error('Error in parallel fetch:', error);
             });
         }
         </script>
