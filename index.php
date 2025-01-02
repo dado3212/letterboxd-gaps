@@ -15,8 +15,8 @@
             #drop-area {
                 border: 2px dashed #ccc;
                 border-radius: 10px;
-                width: 300px;
-                height: 200px;
+                width: 400px;
+                height: 90px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -41,6 +41,10 @@
                     overflow: hidden;
                     box-sizing: border-box;
 
+                    &.missing {
+                        border: 1px solid;
+                    }
+
                     span {
                         font-size: 0.4em;
                         display: block;
@@ -55,6 +59,14 @@
                     }
                 }
             }
+            #stats {
+                width: 400;
+                margin: 0 auto;
+                
+                a {
+                    display: block;
+                }
+            }
         </style>
     </head>
     <body>
@@ -65,6 +77,22 @@
         </p>
         <div id="drop-area">
             Drag & Drop your .csv or .zip file here
+        </div>
+
+        <div id="stats">
+            <div id="gender">
+                <div id="female"></div>
+                <div id="total"></div>
+            </div>
+            <div id="total">
+                <div id="numWatched"></div>
+            </div>
+            <div id="countries">
+                <div id="numWatched"></div>
+            </div>
+            <div id="language">
+                <div id="numWatched"></div>
+            </div>
         </div>
 
         <div id="movies">
@@ -114,18 +142,86 @@
             })
             .then(response => response.text())
             .then(data => {
-                console.log(data);
                 const movies = JSON.parse(data);
+                console.log(movies);
+
+                let numTotal = 0;
+                let numWomen = 0;
+                let countries = {};
+                let languages = {};
 
                 movies.forEach(movie => {
                     const movieDiv = document.createElement('div');
                     movieDiv.className = 'movie';
-                    movieDiv.innerHTML = `
-                        <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
-                    `;
+                    if (movie.poster) {
+                        movieDiv.innerHTML = `
+                            <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
+                        `;
+                    } else {
+                        movieDiv.className += ' missing';
+                        movieDiv.innerHTML = `
+                            <span>${movie.movie_name} (${movie.year})</span>
+                        `;
+                    }
+                    if (movie.tmdb_id) {
+                        if (movie.has_female_director) {
+                            numWomen += 1;
+
+                            movieDiv.className += ' female';
+                        }
+                        numTotal += 1;
+                        console.log(movie.language);
+                        if (!(movie.language in languages)) {
+                            languages[movie.language] = 0;
+                        }
+                        languages[movie.language] += 1;
+                        for (const country of movie.countries) {
+                            if (!(country in countries)) {
+                                countries[country] = 0;
+                            }
+                            countries[country] += 1;
+                        }
+                    }
                     container.appendChild(movieDiv);
                 });
-                // alert(`Server Response: ${data}`);
+
+                fetch('scrape_countries.php', {
+                    method: 'GET',
+                })
+                .then(response => response.text())
+                .then(data => {
+                    const countryLanguageInfo = JSON.parse(data);
+                    console.log(countryLanguageInfo);
+
+                    // Handle stats setup
+                    document.querySelector('#stats #gender #female').innerHTML = numWomen;
+                    document.querySelector('#stats #gender #total').innerHTML = numTotal;
+
+                    document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
+
+                    let countryHTML = '';
+                    for (const country in countryLanguageInfo['countries']) {
+                        countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
+                        if (country in countries) {
+                            countryHTML += '✅: ' + countries[country] + '</a>';
+                        } else {
+                            countryHTML += '❌ </a>';
+                        }
+                    }
+                    document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
+
+                    let languageHTML = '';
+                    for (const language in countryLanguageInfo['languages']) {
+                        languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
+                        if (language in languages) {
+                            languageHTML += '✅: ' + languages[language] + '</a>';
+                        } else {
+                            languageHTML += '❌ </a>';
+                        }
+                    }
+                    document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
+
+                });
             })
             .catch(error => {
                 console.error('Error:', error);

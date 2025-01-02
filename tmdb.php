@@ -36,4 +36,26 @@ function getMovieInfo($movieName, $movieYear) {
   
   return $info;
 }
+
+function getLanguagesAndCountries() {
+  $searchUrl = "https://api.themoviedb.org/3/configuration?append_to_response=languages,countries&api_key=".TMDB_API_KEY;
+
+  $searchResponse = file_get_contents($searchUrl);
+  $searchData = json_decode($searchResponse, true);
+
+  $countries = [];
+  foreach ($searchData['countries'] as $country) {
+    $countries[$country['iso_3166_1']] = $country['english_name'];
+  }
+
+  $languages = [];
+  foreach ($searchData['languages'] as $language) {
+    $languages[$language['iso_639_1']] = $language['english_name'];
+  }
+
+  return [
+    'countries' => $countries,
+    'languages' => $languages,
+  ];
+}
 ?>

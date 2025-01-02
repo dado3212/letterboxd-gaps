@@ -108,55 +108,65 @@ function handleMovies($watchlistMovies) {
   $toUpload = [];
   $movies = [];
   foreach ($watchlistMovies as $movie) {
-    // Check if it's in the database movie info
+    // If it's already in the database then we can return the data directly
     if (array_key_exists($movie['Letterboxd URI'], $serverMovieInfo)) {
       $movieInfo = $serverMovieInfo[$movie['Letterboxd URI']];
       $movieInfo['countries'] = json_decode($movieInfo['countries']);
       $movies[] = $movieInfo;
     } else {
-      // Handle if it's a new source
-      // Fetch the info from TMDB
-      $newInfo = getMovieInfo($movie['Name'], $movie['Year']);
-      if ($newInfo) {
-        $formattedMovie = [
-          'movie_name' => $movie['Name'],
-          'year' => $movie['Year'],
-          'id' => -1, // there is no ID yet because it hasn't been uploaded
-          'tmdb_id' => $newInfo['tmdb_id'],
-          'imdb_id' => $newInfo['imdb_id'],
-          'letterboxd_url' => $movie['Letterboxd URI'],
-          'has_female_director' => $newInfo['has_female_director'] ? 1 : 0,
-          'language' => $newInfo['language'],
-          'poster' => $newInfo['poster'],
-          'countries' => array_values($newInfo['production_countries']),
-        ];
-        $movies[] = $formattedMovie;
-        unset($formattedMovie['id']);
-        $formattedMovie['countries'] = json_encode($formattedMovie['countries']);
-        $toUpload[] = array_values($formattedMovie);
-      } else {
-        // Error!
-      }
+      // If it's NOT in the database, it's a little more complicated. We'll create
+      // basic rows for each of the new ones, and kick off populating that data
+      // In the meantime we'll send back the information that we have from the 
+      // watchlist. Additionally we'll send down an ID for the progress that will
+      // monitor these movies.
+      $toUpload[] = [$movie['Name'], $movie['Year']];
+      $movies[] = [
+        'movie_name' => $movie['Name'],
+        'year' => $movie['Year'],
+        'letterboxd_url' => $movie['Letterboxd URI'],
+        'status' => 'pending',
+      ];
+      // $newInfo = getMovieInfo($movie['Name'], $movie['Year']);
+      // if ($newInfo) {
+      //   $formattedMovie = [
+      //     'movie_name' => $movie['Name'],
+      //     'year' => $movie['Year'],
+      //     'id' => -1, // there is no ID yet because it hasn't been uploaded
+      //     'tmdb_id' => $newInfo['tmdb_id'],
+      //     'imdb_id' => $newInfo['imdb_id'],
+      //     'letterboxd_url' => $movie['Letterboxd URI'],
+      //     'has_female_director' => $newInfo['has_female_director'] ? 1 : 0,
+      //     'language' => $newInfo['language'],
+      //     'poster' => $newInfo['poster'],
+      //     'countries' => array_values($newInfo['production_countries']),
+      //   ];
+      //   $movies[] = $formattedMovie;
+      //   unset($formattedMovie['id']);
+      //   $formattedMovie['countries'] = json_encode($formattedMovie['countries']);
+      //   $toUpload[] = array_values($formattedMovie);
+      // } else {
+      //   // Error!
+      // }
     }
   }
 
-  if (count($toUpload) > 0) {
-    // Build the query dynamically
-    $placeholders = [];
-    $bindValues = [];
-    foreach ($toUpload as $index => $info) {
-      $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
-      $bindValues = array_merge($bindValues, $info);
-    }
+  // if (count($toUpload) > 0) {
+  //   // Build the query dynamically
+  //   $placeholders = [];
+  //   $bindValues = [];
+  //   foreach ($toUpload as $index => $info) {
+  //     $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
+  //     $bindValues = array_merge($bindValues, $info);
+  //   }
     
-    $sql = "INSERT INTO letterboxd.movies 
-    (movie_name, `year`, tmdb_id, imdb_id, letterboxd_url, has_female_director, language, poster, countries) 
-    VALUES " . implode(', ', $placeholders);
+  //   $sql = "INSERT INTO letterboxd.movies 
+  //   (movie_name, `year`, tmdb_id, imdb_id, letterboxd_url, has_female_director, language, poster, countries) 
+  //   VALUES " . implode(', ', $placeholders);
     
-    // Prepare and execute the query
-    $stmt = $PDO->prepare($sql);
-    $stmt->execute($bindValues);
-  }
+  //   // Prepare and execute the query
+  //   $stmt = $PDO->prepare($sql);
+  //   $stmt->execute($bindValues);
+  // }
 
   return $movies;
 }
