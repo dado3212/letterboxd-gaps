@@ -185,43 +185,42 @@
                     container.appendChild(movieDiv);
                 });
 
-                fetch('scrape_countries.php', {
-                    method: 'GET',
-                })
-                .then(response => response.text())
-                .then(data => {
-                    const countryLanguageInfo = JSON.parse(data);
-                    console.log(countryLanguageInfo);
+                // fetch('scrape_countries.php', {
+                //     method: 'GET',
+                // })
+                // .then(response => response.text())
+                // .then(data => {
+                //     const countryLanguageInfo = JSON.parse(data);
+                //     console.log(countryLanguageInfo);
 
-                    // Handle stats setup
-                    document.querySelector('#stats #gender #female').innerHTML = numWomen;
-                    document.querySelector('#stats #gender #total').innerHTML = numTotal;
+                //     // Handle stats setup
+                //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
+                //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
 
-                    document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
+                //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
 
-                    let countryHTML = '';
-                    for (const country in countryLanguageInfo['countries']) {
-                        countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
-                        if (country in countries) {
-                            countryHTML += '✅: ' + countries[country] + '</a>';
-                        } else {
-                            countryHTML += '❌ </a>';
-                        }
-                    }
-                    document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
+                //     let countryHTML = '';
+                //     for (const country in countryLanguageInfo['countries']) {
+                //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
+                //         if (country in countries) {
+                //             countryHTML += '✅: ' + countries[country] + '</a>';
+                //         } else {
+                //             countryHTML += '❌ </a>';
+                //         }
+                //     }
+                //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
 
-                    let languageHTML = '';
-                    for (const language in countryLanguageInfo['languages']) {
-                        languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
-                        if (language in languages) {
-                            languageHTML += '✅: ' + languages[language] + '</a>';
-                        } else {
-                            languageHTML += '❌ </a>';
-                        }
-                    }
-                    document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
-
-                });
+                //     let languageHTML = '';
+                //     for (const language in countryLanguageInfo['languages']) {
+                //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
+                //         if (language in languages) {
+                //             languageHTML += '✅: ' + languages[language] + '</a>';
+                //         } else {
+                //             languageHTML += '❌ </a>';
+                //         }
+                //     }
+                //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
+                // });
             })
             .catch(error => {
                 console.error('Error:', error);
