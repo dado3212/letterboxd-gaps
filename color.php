@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $PDO = getDatabase();
-$stmt = $PDO->prepare("SELECT poster FROM movies LIMIT 120");
+$stmt = $PDO->prepare("SELECT poster FROM movies ORDER BY RAND() LIMIT 500");
 $stmt->execute();
 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -99,7 +99,7 @@ function rgbToHsl($r, $g, $b) {
             const height = window.innerHeight;
             const size = Math.min(width, height);
 
-            radiusScale = (size - 10) / 2;
+            radiusScale = (size - 10) / 2.0;
             // 92 + (5 * 2) / 2, 138 + (5 * 2) / 2 with 5 padding
             centerX = (width / 2) - 51;
             centerY = (height / 2) - 74;
@@ -118,9 +118,9 @@ foreach ($posters as $poster) {
   $rgb = getDominantColor($poster);
   $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
   $angle = $hsl['h'] / 360.0 * 2 * M_PI; // Convert Hue to radians
-  $radius = 1 - $hsl['l'];    // Inverse of Lightness
+  $radius = (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
 
-  echo '<div class="poster" style="background-color: rgb(' . $rgb['r'] . ', '  . $rgb['g'] . ', '  . $rgb['b'] . ')" data-angle="' . $angle . '" data-radius="' . $radius . '">';
+  echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
   echo '<img src="' . $poster .'" /><br>';
   echo '</div>';
 }
