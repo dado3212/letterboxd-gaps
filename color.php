@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $image_size = 22; // 92
-$border_width = 5;
+$border_width = 0;
 
 ?>
 <html>
@@ -93,6 +93,29 @@ foreach ($posters as $poster) {
     posters.push({x, y, poster});
   });
 
+  function getBestPosition(arr, targetX, targetY) {
+    if (arr.length === 0) return null; // Handle empty array case
+
+    let scoreFunc = (poster) => {
+      return Math.sqrt((poster.x - targetX) ** 2 + (poster.y - targetY) ** 2);
+    };
+    
+    // Find the index of the element with the smallest score
+    let smallestIndex = 0;
+    let smallestScore = scoreFunc(arr[0]);
+
+    for (let i = 1; i < arr.length; i++) {
+      const currentScore = scoreFunc(arr[i]);
+      if (currentScore < smallestScore) {
+        smallestScore = currentScore;
+        smallestIndex = i;
+      }
+    }
+
+    // Remove the element with the smallest score
+    return arr.splice(smallestIndex, 1)[0]; // Returns the removed element
+  }
+
   const widthScale = imageWidth + borderWidth * 2;
   const heightScale = imageHeight + borderWidth * 2;
 
@@ -110,8 +133,13 @@ foreach ($posters as $poster) {
   let switchCounter = 1;
 
   for (var i = 0; i < 500; i++) {
-    posters[i].poster.style.left = `${col * widthScale}px`;
-    posters[i].poster.style.top = `${row * heightScale}px`;
+    const targetX = col * widthScale;
+    const targetY = row * heightScale;
+
+    let poster = getBestPosition(posters, targetX, targetY);
+
+    poster.poster.style.left = `${targetX}px`;
+    poster.poster.style.top = `${targetY}px`;
 
     // Check if we should swap directions
     switchCounter -= 1;
