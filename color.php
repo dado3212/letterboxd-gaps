@@ -78,81 +78,156 @@ function createCanvas(width, height, dpi) {
   return context;
 }
 
-let width = 400;
+let width = window.innerWidth;
+let height = window.innerHeight;
 
 function getData() {
-  const k = width / 200;
-  const r = d3.randomUniform(k, k * 4);
-  const n = 4;
-  return Array.from({length: 200}, (_, i) => ({r: r(), group: i && (i % n + 1)}));
+  const k = width / 500;
+  <?php
+
+  $PDO = getDatabase();
+  $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies ORDER BY RAND() LIMIT 500");
+  $stmt->execute();
+  $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+  $posterImages = [];
+
+  foreach ($posters as $poster) {
+    $hsl = json_decode($poster['primary_color'], true);
+    $angle = ($hsl['h']) / 360.0 * 2 * M_PI; // Convert Hue to radians
+    $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
+
+    $posterImages[] = '{r: k * 5, p: "https://image.tmdb.org/t/p/w92' . $poster['poster'] . '", h: "' . $hsl['h'] . '", a: "' . $angle . '", rad: "' . $radius . '"}';
+  }
+  echo 'let data = [' . implode(',', $posterImages) . '];';
+  ?>
+
+  let radiusScale, centerX, centerY;
+  if (width > height) {
+    radiusScale = (height / 2) -50;
+  } else {
+    radiusScale = (width / 2) - 50;
+  }
+
+  centerX = 0; // (width / 2) - 41;
+  centerY = 0; // (height / 2) - 51;
+
+  data.forEach(function(d) {
+    let radius = radiusScale * d.rad;
+    let angle = d.a;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    d.gX = x;
+    d.gY = y;
+  });
+
+  return data;
+
+  // const k = width / 200;
+  // const r = d3.randomUniform(k, k * 4);
+  // const n = 4;
+  // return Array.from({length: 200}, (_, i) => ({r: k * 3, group: i && (i % n + 1)}));
 }
 
-function drawChart(container, data){
-  const height = width;
+function preloadImages(nodes) {
+  return Promise.all(
+    nodes.map(d => {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.src = d.p; // Use the .p property for the poster URL
+        img.onload = () => resolve({ src: d.p, img }); // Resolve when the image is loaded
+        img.onerror = () => resolve({ src: d.p, img: null }); // Handle failed loads
+      });
+    })
+  );
+}
+
+async function drawChart(container, data){
   const color = d3.scaleOrdinal(d3.schemeTableau10);
   const context = createCanvas(width, height, 2);
+
+  // Preload images
+  const preloadedImages = await preloadImages(data);
+
   const nodes = data.map(Object.create);
+  const nodeImageMap = new Map(
+    preloadedImages.map(({ src, img }) => [src, img])
+  );
 
   const simulation = d3.forceSimulation(nodes)
-      .alphaTarget(0.3) // stay hot
-      .velocityDecay(0.1) // low friction
-      .force("x", d3.forceX().strength(0.01))
-      .force("y", d3.forceY().strength(0.01))
+      .alphaTarget(0.2) // stay hot
+      .velocityDecay(0.4) // low friction
+      .force("x", d3.forceX().x(function(d){
+        return d.gX;
+      }).strength(0.05))
+      .force("y", d3.forceY().y(function(d){
+        return d.gY;
+      }).strength(0.05))
       .force("collide", d3.forceCollide().radius(d => d.r + 1).iterations(3))
-      .force("charge", d3.forceManyBody().strength((d, i) => i ? 0 : -width * 2 / 3))
+      .force("charge", d3.forceManyBody().strength(2))
       .on("tick", ticked);
 
-  d3.select(context.canvas)
-      .on("touchmove", event => event.preventDefault())
-      .on("pointermove", pointermoved);
+  // d3.select(context.canvas)
+  //     .on("touchmove", event => event.preventDefault());
+      // .on("pointermove", pointermoved);
 
   // invalidation.then(() => simulation.stop());
 
-  function pointermoved(event) {
-    const [x, y] = d3.pointer(event);
-    nodes[0].fx = x - width / 2;
-    nodes[0].fy = y - height / 2;
-  }
+  // function pointermoved(event) {
+  //   const [x, y] = d3.pointer(event);
+  //   nodes[0].fx = x - width / 2;
+  //   nodes[0].fy = y - height / 2;
+  // }
 
   function ticked() {
+    const aspectRatio = 92 / 138; // Width-to-height ratio of the posters
+
     context.clearRect(0, 0, width, height);
     context.save();
     context.translate(width / 2, height / 2);
-    for (let i = 1; i < nodes.length; ++i) {
-      const d = nodes[i];
-      context.beginPath();
-      context.moveTo(d.x + d.r, d.y);
-      context.arc(d.x, d.y, d.r, 0, 2 * Math.PI);
-      context.fillStyle = color(d.group);
-      context.fill();
-    }
+    nodes.forEach(d => {
+      const img = nodeImageMap.get(d.p);
+      if (img) {
+        const posterHeight = d.r * 2; // Diameter of the node determines image size
+        const posterWidth = posterHeight * aspectRatio;
+        context.drawImage(img, d.x - posterWidth / 2, d.y - posterHeight / 2, posterWidth, posterHeight);
+      } else {
+        // Fallback: draw a rectangle placeholder
+        context.beginPath();
+        const rectWidth = d.r * 2 * aspectRatio;
+        const rectHeight = d.r * 2;
+        context.rect(d.x - rectWidth / 2, d.y - rectHeight / 2, rectWidth, rectHeight);
+        context.fillStyle = "gray";
+        context.fill();
+      }
+    });
     context.restore();
   }
 
   return context.canvas;
 }
 const container = document.getElementById("container");
-container.appendChild(drawChart(container, getData()));
+container.appendChild(await drawChart(container, getData()));
 
 </script>
       
       <?php
 
-$PDO = getDatabase();
-$stmt = $PDO->prepare("SELECT poster, primary_color FROM movies ORDER BY RAND() LIMIT 500");
-$stmt->execute();
-$posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// $PDO = getDatabase();
+// $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies ORDER BY RAND() LIMIT 500");
+// $stmt->execute();
+// $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($posters as $poster) {
-  $hsl = json_decode($poster['primary_color'], true);
-  $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
+// foreach ($posters as $poster) {
+//   $hsl = json_decode($poster['primary_color'], true);
+//   $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
 
-  $angle = ($hsl['h'] + mt_rand() / mt_getrandmax() * 180) / 360.0 * 2 * M_PI; // Convert Hue to radians
-  $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
+//   $angle = ($hsl['h'] + mt_rand() / mt_getrandmax() * 180) / 360.0 * 2 * M_PI; // Convert Hue to radians
+//   $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
 
-  echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
-  echo '<img src="' . $poster .'" /><br>';
-  echo '</div>';
-}
+//   echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
+//   echo '<img src="' . $poster .'" /><br>';
+//   echo '</div>';
+// }
 ?>
 </body></html>
