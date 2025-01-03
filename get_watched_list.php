@@ -168,5 +168,9 @@ function handleMovies($watchlistMovies) {
   //   $stmt->execute($bindValues);
   // }
 
+  usort($movies, function($a, $b) {
+    return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+  });
+
   return $movies;
 }
