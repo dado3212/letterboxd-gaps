@@ -5,66 +5,6 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-function getDominantColor($imagePath) {
-  $image = imagecreatefromjpeg($imagePath);
-  $width = imagesx($image);
-  $height = imagesy($image);
-
-  $rTotal = $gTotal = $bTotal = $pixelCount = 0;
-
-  for ($x = 0; $x < $width; $x++) {
-      for ($y = 0; $y < $height; $y++) {
-      $rgb = imagecolorat($image, $x, $y);
-      $r = ($rgb >> 16) & 0xFF;
-      $g = ($rgb >> 8) & 0xFF;
-      $b = $rgb & 0xFF;
-
-      $rTotal += $r;
-      $gTotal += $g;
-      $bTotal += $b;
-      $pixelCount++;
-      }
-  }
-
-  imagedestroy($image);
-
-  return [
-      'r' => round($rTotal / $pixelCount),
-      'g' => round($gTotal / $pixelCount),
-      'b' => round($bTotal / $pixelCount)
-  ];
-}
-
-function rgbToHsl($r, $g, $b) {
-  $r /= 255;
-  $g /= 255;
-  $b /= 255;
-
-  $max = max($r, $g, $b);
-  $min = min($r, $g, $b);
-  $delta = $max - $min;
-
-  $h = 0;
-  if ($delta > 0) {
-    if ($max === $r) {
-      $h = 60 * fmod((($g - $b) / $delta), 6);
-    } elseif ($max === $g) {
-      $h = 60 * (($b - $r) / $delta + 2);
-    } else {
-      $h = 60 * (($r - $g) / $delta + 4);
-    }
-  }
-
-  $l = ($max + $min) / 2;
-  $s = $delta == 0 ? 0 : $delta / (1 - abs(2 * $l - 1));
-
-  return [
-    'h' => ($h < 0 ? $h + 360 : $h),
-    's' => $s,
-    'l' => $l
-  ];
-}
-
 $image_size = 22; // 92
 $border_width = 5;
 
@@ -121,45 +61,97 @@ $border_width = 5;
           });
         </script>
 </head>
-    <body><?php
+    <body>
+    <div id="container"></div>
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+function createCanvas(width, height, dpi) {
+  if (dpi == null) dpi = devicePixelRatio;
+  var canvas = document.createElement("canvas");
+  canvas.width = width * dpi;
+  canvas.height = height * dpi;
+  canvas.style.width = width + "px";
+  var context = canvas.getContext("2d");
+  context.scale(dpi, dpi);
+  return context;
+}
+
+let width = 400;
+
+function getData() {
+  const k = width / 200;
+  const r = d3.randomUniform(k, k * 4);
+  const n = 4;
+  return Array.from({length: 200}, (_, i) => ({r: r(), group: i && (i % n + 1)}));
+}
+
+function drawChart(container, data){
+  const height = width;
+  const color = d3.scaleOrdinal(d3.schemeTableau10);
+  const context = createCanvas(width, height, 2);
+  const nodes = data.map(Object.create);
+
+  const simulation = d3.forceSimulation(nodes)
+      .alphaTarget(0.3) // stay hot
+      .velocityDecay(0.1) // low friction
+      .force("x", d3.forceX().strength(0.01))
+      .force("y", d3.forceY().strength(0.01))
+      .force("collide", d3.forceCollide().radius(d => d.r + 1).iterations(3))
+      .force("charge", d3.forceManyBody().strength((d, i) => i ? 0 : -width * 2 / 3))
+      .on("tick", ticked);
+
+  d3.select(context.canvas)
+      .on("touchmove", event => event.preventDefault())
+      .on("pointermove", pointermoved);
+
+  // invalidation.then(() => simulation.stop());
+
+  function pointermoved(event) {
+    const [x, y] = d3.pointer(event);
+    nodes[0].fx = x - width / 2;
+    nodes[0].fy = y - height / 2;
+  }
+
+  function ticked() {
+    context.clearRect(0, 0, width, height);
+    context.save();
+    context.translate(width / 2, height / 2);
+    for (let i = 1; i < nodes.length; ++i) {
+      const d = nodes[i];
+      context.beginPath();
+      context.moveTo(d.x + d.r, d.y);
+      context.arc(d.x, d.y, d.r, 0, 2 * Math.PI);
+      context.fillStyle = color(d.group);
+      context.fill();
+    }
+    context.restore();
+  }
+
+  return context.canvas;
+}
+const container = document.getElementById("container");
+container.appendChild(drawChart(container, getData()));
+
+</script>
+      
+      <?php
 
 $PDO = getDatabase();
 $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies ORDER BY RAND() LIMIT 500");
 $stmt->execute();
 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// include_once("raw_color.php");
-// $ex = new GetMostCommonColors();
-
-// for ($h = 0; $h < 360; $h+=5) {
-//   for ($s = 0; $s <= 100; $s+=10) {
-//     for ($l = 0; $l <= 100; $l+=10) {
-//       $hsl = ['h' => $h, 's' => $s / 100.0, 'l' => $l / 100.0];
-//       $angle = $hsl['h'] / 360.0 * 2 * M_PI; // Convert Hue to radians
-//       $radius = (1 - $hsl['l']); // * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
-
-//       echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
-//       echo '</div>';
-//     }
-//   }
-// }
-
 foreach ($posters as $poster) {
   $hsl = json_decode($poster['primary_color'], true);
   $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
 
-  // $dominant_colors = $ex->Get_Color($poster, 5, true, true, 24);
-
-  // $rgb = getDominantColor($poster);
-  // $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
   $angle = ($hsl['h'] + mt_rand() / mt_getrandmax() * 180) / 360.0 * 2 * M_PI; // Convert Hue to radians
   $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
 
   echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
   echo '<img src="' . $poster .'" /><br>';
-  // foreach ($dominant_colors as $dominant_color => $p) {
-  //   echo '<span style="background-color: #' . $dominant_color . '; width: ' . $p * 100 . '%"></span>';
-  // }
   echo '</div>';
 }
 ?>
