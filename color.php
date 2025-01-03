@@ -5,9 +5,6 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$image_size = 22; // 92
-$border_width = 0;
-
 ?>
 <html>
     <head>
@@ -27,13 +24,7 @@ $border_width = 0;
         }
         .poster {
           display: inline-block;
-          padding: <?php echo $border_width; ?>px;
           position: absolute;
-
-          img {
-            width: <?php echo $image_size; ?>px;
-            height: <?php echo $image_size * 138 / 92; ?>px;
-          }
 
           span {
             height: 10px;
@@ -46,8 +37,10 @@ $border_width = 0;
       <div class="title">Letterboxd</div>
       <?php
 
+$numPosters = 3000;
+
 $PDO = getDatabase();
-$stmt = $PDO->prepare("SELECT poster, primary_color FROM movies LIMIT 500"); // ORDER BY RAND()
+$stmt = $PDO->prepare("SELECT poster, primary_color FROM movies LIMIT $numPosters"); // ORDER BY RAND()
 $stmt->execute();
 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -64,13 +57,51 @@ foreach ($posters as $poster) {
 }
 ?>
 <script>
+
+  function calculateBestFit(w, h, n, ratio) {
+    let bestWidth = 0;
+    let bestColumns = 0;
+    let bestRows = 0;
+
+    for (let c = 1; c <= n; c++) {
+      let r = Math.ceil(n / c); // Calculate rows for current column count
+      const x = Math.min(w / (c * 1), h / (r * ratio)); // Calculate the scale-independent width x
+      const y = x * ratio; // Corresponding height
+      if (c * x <= w && r * y <= h) { // Check if the configuration fits
+        if (x > bestWidth) { // Update if this scale is better
+          bestWidth = x;
+          bestColumns = c;
+          bestRows = r;
+        }
+      }
+    }
+
+    return {
+      imageWidth: bestWidth,
+      numRows: bestRows,
+      numCols: bestColumns,
+    };
+  }
+
+  const numPosters = <?php echo count($posters); ?>;
   let centerX, centerY, radiusScale;
   const width = window.innerWidth;
   const height = window.innerHeight;
+  const ratio = 138/92;
 
-  const imageWidth = <?php echo $image_size; ?>;
-  const imageHeight = imageWidth * 138/92;
-  const borderWidth = <?php echo $border_width; ?>;
+  // +5 for the letterboxd logo
+  const { imageWidth, numRows, numCols } = calculateBestFit(width, height, numPosters + 5, ratio);
+  const imageHeight = imageWidth * ratio;
+  const borderWidth = 0;
+
+  var styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+  img {
+    width: ${imageWidth}px;
+    height: ${imageHeight}px;
+  }
+  `;
+  document.head.appendChild(styleSheet);
   
   if (width > height) {
     radiusScale = (height / 2 - imageHeight / 2) -50;
@@ -115,12 +146,6 @@ foreach ($posters as $poster) {
     // Remove the element with the smallest score
     return arr.splice(smallestIndex, 1)[0]; // Returns the removed element
   }
-
-  const widthScale = imageWidth + borderWidth * 2;
-  const heightScale = imageHeight + borderWidth * 2;
-
-  const numCols = Math.floor(width / widthScale);
-  const numRows = Math.floor(height / heightScale);
   
   // The current poster position that we're trying to fill
   let row = Math.floor(numRows / 2);
@@ -132,14 +157,19 @@ foreach ($posters as $poster) {
   let nextHorizontal = 5;
   let switchCounter = 1;
 
-  for (var i = 0; i < 500; i++) {
-    const targetX = col * widthScale;
-    const targetY = row * heightScale;
+  // 230 (first turn off the bottom)
+  // 243 (first turn off the top)
+  // 256 (second turn off the bottom)
+  // 290
+  for (var i = 0; i < numPosters; i++) {
+    const targetX = col * imageWidth;
+    const targetY = row * imageHeight;
 
     let poster = getBestPosition(posters, targetX, targetY);
 
     poster.poster.style.left = `${targetX}px`;
     poster.poster.style.top = `${targetY}px`;
+    // poster.poster.innerHTML = i;
 
     // Check if we should swap directions
     switchCounter -= 1;
@@ -182,7 +212,34 @@ foreach ($posters as $poster) {
         row += 1;
         break;
     }
+
+    // If you've gone off the grid, we need to teleport
+    // Off the bottom
+    if (row == numRows) {
+      // Swap back to going north
+      direction = 'NORTH';
+      // Reset yourself to the bottom position
+      row = numRows - 1;
+      col -= nextHorizontal;
+      // Need this so that we don't overwrite
+      switchCounter = nextVertical + 1;
+      // For next time!
+      nextHorizontal += 1;
+    } else if (row < 0) {
+      direction = 'SOUTH';
+
+      row = 0
+      col += nextHorizontal;
+
+      switchCounter = nextVertical + 1;
+
+      nextHorizontal += 1;
+    }
   }
+
+  posters.forEach(p => {
+    p.poster.remove();
+  })
   
 </script>
 </body></html>
