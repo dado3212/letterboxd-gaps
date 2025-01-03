@@ -25,6 +25,7 @@ ini_set('display_errors', 1);
         .poster {
           display: inline-block;
           position: absolute;
+          color: white;
 
           span {
             height: 10px;
@@ -37,7 +38,7 @@ ini_set('display_errors', 1);
       <div class="title">Letterboxd</div>
       <?php
 
-$numPosters = 3000;
+$numPosters = 500;
 
 $PDO = getDatabase();
 $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies LIMIT $numPosters"); // ORDER BY RAND()
@@ -50,8 +51,14 @@ foreach ($posters as $poster) {
 
   $angle = ($hsl['h']) / 360.0 * 2 * M_PI; // Convert Hue to radians
   $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
-
-  echo '<div class="poster" style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" data-angle="' . $angle . '" data-radius="' . $radius . '">';
+  echo '<div class="poster" '.
+  'style="background-color: hsl(' . $hsl['h'] . ', '  . $hsl['s'] * 100 . '%, '  . $hsl['l'] * 100 . '%)" '.
+  'data-angle="' . $angle . '" '.
+  'data-radius="' . $radius . '" '.
+  'data-hue="' . $hsl['h'] . '" '.
+  'data-saturation="' . $hsl['s'] . '" '.
+  'data-lightness="' . $hsl['l'] . '" '.
+  '>';
   echo '<img src="' . $poster .'" /><br>';
   echo '</div>';
 }
@@ -116,60 +123,119 @@ foreach ($posters as $poster) {
   // Then iterate over the locations, choose the best poster, and place it
   let posters = [];
 
+  // Preprocess each poster to get targeted location and get a sense for volume by hue
+  const numBuckets = 20;
+  let hueBuckets = {};
+  let hueRange = [];
   document.querySelectorAll('.poster').forEach(poster => {
     let radius = radiusScale * poster.getAttribute('data-radius');
     let angle = poster.getAttribute('data-angle');
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
-    posters.push({x, y, poster});
-  });
 
-  function getBestPosition(arr, targetX, targetY) {
+    const hue = poster.getAttribute('data-hue');
+    const bucketizedHue = Math.floor(hue / 360 * numBuckets) * 360 / numBuckets;
+    hueRange.push(bucketizedHue);
+    const f = {
+      x,
+      y,
+      poster,
+      h: poster.getAttribute('data-hue'),
+      s: poster.getAttribute('data-saturation'),
+      l: poster.getAttribute('data-lightness'),
+      radius,
+      angle,
+    };
+    if (bucketizedHue in hueBuckets) {
+      hueBuckets[bucketizedHue].push(f);
+    } else {
+      hueBuckets[bucketizedHue] = [f];
+    }
+    posters.push(f);
+  });
+  hueRange = hueRange.sort((a, b) => a - b);
+  
+  // Figure out what area each bucket needs to take by radially dividing 
+  
+  // First create a grid of all of the available cells
+  const grid = Object.fromEntries(
+    Array.from({ length: numRows }, (_, i) => [i, Array.from({ length: numCols }, (_, i) => {return {};})])
+  );
+  let allAngles = [];
+  for (var r = 0; r < numRows; r++) {
+    for (var c = 0; c < numCols; c++) {
+      const targetX = c * imageWidth;
+      const targetY = r * imageHeight;
+
+      grid[r][c].x = targetX;
+      grid[r][c].y = targetY;
+      let targetAngle = Math.atan2(targetY - centerY, targetX - centerX);
+      if (targetAngle < 0) {
+        targetAngle += 2 * Math.PI;
+      }
+      grid[r][c].angle = targetAngle;
+      allAngles.push([targetAngle, r, c]);
+    }
+  }
+  allAngles = allAngles.sort((a, b) => a[0] - b[0]);
+
+  const currentHueRange = 0;
+  for (var i = 0; i < hueRange.length; i++) {
+    grid[allAngles[i][1]][allAngles[i][2]].bucket = hueRange[i];
+  }
+
+  console.log(grid);
+  console.log(hueBuckets);
+
+  function getBestAngle(arr, r, c) {
     if (arr.length === 0) return null; // Handle empty array case
 
-    let scoreFunc = (poster) => {
-      return Math.sqrt((poster.x - targetX) ** 2 + (poster.y - targetY) ** 2);
-    };
-    
-    // Find the index of the element with the smallest score
-    let smallestIndex = 0;
-    let smallestScore = scoreFunc(arr[0]);
+    let targetAngle = grid[r][c].angle;
+    // Get everything in the corresponding hue bucket
+    let options = hueBuckets[grid[r][c].bucket];
+    if (options === undefined) {
+      console.log(r, c, grid[r][c].bucket);
+      return null;
+    }
+    // console.log(grid[r][c].bucket, options.length, options);
 
-    for (let i = 1; i < arr.length; i++) {
-      const currentScore = scoreFunc(arr[i]);
-      if (currentScore < smallestScore) {
-        smallestScore = currentScore;
-        smallestIndex = i;
+    let bestSaturation = null;
+    bestIndex = i;
+    for (let i = 0; i < options.length; i++) {
+      let score = Math.sqrt(options[i].s) * (options[i].l);
+      if (bestSaturation == null || score > bestSaturation) {
+        bestSaturation = score;
+        bestIndex = i;
       }
     }
 
-    // Remove the element with the smallest score
-    return arr.splice(smallestIndex, 1)[0]; // Returns the removed element
+    selectedPoster = options.splice(bestIndex, 1)[0]; // Returns the removed element
+    return selectedPoster;
   }
   
   // The current poster position that we're trying to fill
   let row = Math.floor(numRows / 2);
-  let col = Math.floor(numCols / 2) + 4;
+  let col = Math.floor(numCols / 2); // + 4;
   // The current direction that we're traveling
   let direction = 'EAST';
   // Each time we rotate, we increase
   let nextVertical = 1;
-  let nextHorizontal = 5;
+  let nextHorizontal = 1; // 5;
   let switchCounter = 1;
 
+  // For 500 people
   // 230 (first turn off the bottom)
   // 243 (first turn off the top)
   // 256 (second turn off the bottom)
   // 290
   for (var i = 0; i < numPosters; i++) {
-    const targetX = col * imageWidth;
-    const targetY = row * imageHeight;
+    let poster = getBestAngle(posters, row, col);
 
-    let poster = getBestPosition(posters, targetX, targetY);
-
-    poster.poster.style.left = `${targetX}px`;
-    poster.poster.style.top = `${targetY}px`;
-    // poster.poster.innerHTML = i;
+    if (poster) {
+      poster.poster.style.left = `${grid[row][col].x}px`;
+      poster.poster.style.top = `${grid[row][col].y}px`;
+      // poster.poster.innerHTML = getSegment(grid[row][col].angle); // Math.round(grid[row][col].angle * 100) / 100;
+    }
 
     // Check if we should swap directions
     switchCounter -= 1;
