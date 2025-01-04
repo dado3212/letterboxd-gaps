@@ -153,8 +153,14 @@
                 152601 => ['red', 'Her'],
                 252171 => ['red', 'A girl walks home alone at night'],
                 284 => ['red/orange', 'The Apartment'],
-                559907 => ['red', 'The Green Knight'],
                 426 => ['orange', 'Vertigo'],
+                9806 => ['red', 'The Incredibles'],
+                843 => ['red', 'In the mood for love'],
+                592695 => ['pink', 'Pleasure'],
+                1049638 => ['orange', 'Rye Lane'],
+                835113 => ['orange', 'Woman of the hour'],
+                194 => ['red', 'Amelie'],
+                
             ];
 
             $PDO = getDatabase();

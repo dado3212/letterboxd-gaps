@@ -79,7 +79,7 @@ if (count($posters) === 0) {
 $new_colors = [];
 foreach ($posters as $poster) {
   $id = $poster['id'];
-  $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
+  $poster = $poster['poster'];
   $rgb = getDominantColor($poster);
   $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
 

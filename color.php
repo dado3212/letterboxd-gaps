@@ -26,6 +26,7 @@ ini_set('display_errors', 1);
           display: inline-block;
           position: absolute;
           color: white;
+          font-size: 0px;
 
           span {
             height: 10px;
@@ -48,7 +49,7 @@ $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 foreach ($posters as $poster) {
   $hsl = json_decode($poster['primary_color'], true);
   $tmdb_id = $poster['tmdb_id'];
-  $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
+  $poster = $poster['poster'];
 
   $angle = ($hsl['h']) / 360.0 * 2 * M_PI; // Convert Hue to radians
   $radius = (1 - $hsl['s'] / 0.927); // (1 - $hsl['s']) * (1 + 0.2 * (1 - $hsl['l']));    // Inverse of Lightness
@@ -263,7 +264,7 @@ function hslToLab(h, s, l) {
     let bestSaturation = null;
     bestIndex = i;
     for (let i = 0; i < options.length; i++) {
-      let score = options[i].s; // Math.sqrt(options[i].s) * (1 - options[i].l);
+      let score = options[i].l; // Math.sqrt(options[i].s) * (1 - options[i].l);
       if (bestSaturation == null || score > bestSaturation) {
         bestSaturation = score;
         bestIndex = i;
