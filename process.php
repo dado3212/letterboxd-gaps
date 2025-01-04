@@ -14,7 +14,7 @@ $movies = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $PDO = null;
 
 if (empty($movies)) {
-  echo "No pending movies to process.\n";
+  echo 'finished';
   exit;
 }
 
@@ -112,6 +112,6 @@ for ($i = 1; $i <= 7; $i++) {
 }
 
 $stmt->execute();
-echo 'Done';
+echo 'more';
 
 ?>

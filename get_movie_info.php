@@ -6,7 +6,15 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 exec('php process.php', $output);
-echo implode('<br>', $output);
+if ($output[0] == 'more' || $output[0] == 'finished') {
+  header('Content-Type: application/json');
+  echo json_encode([
+    'status' => $output[0],
+  ]);
+} else {
+  echo implode('<br>', $output);
+}
+
 
 // var_export(getInfo('https://boxd.it/iEEq', 'Free Solo', '2021'));
 // $info = getInfo('https://boxd.it/aPvo', 'Frozen', '2021');

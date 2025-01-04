@@ -22,7 +22,12 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
   if (preg_match("/{\"image\":\"(https:\/\/a.ltrbxd.com\/.*?)\?/", $letterboxdPage, $matches)) {
     $posterUrl = $matches[1];
   }
-  preg_match("/\/(tt\d+)\//", $xpath->query('//a[text()="IMDb"]')->item(0)->getAttribute('href'), $imdb_matches); // Finds <a> tags with text content "TMDb"
+  $imdb_tag = $xpath->query('//a[text()="IMDb"]');
+  $imdb_fallback = null;
+  if ($imdb_tag->length) {
+    preg_match("/\/(tt\d+)\//", $xpath->query('//a[text()="IMDb"]')->item(0)->getAttribute('href'), $imdb_matches); // Finds <a> tags with text content "IMDb"
+    $imdb_fallback = $imdb_matches[1];
+  }
 
   if ($tmdbType == 'movie') {
     $additionalURL = "https://api.themoviedb.org/3/movie/$tmdbId?append_to_response=credits&api_key=".TMDB_API_KEY;
@@ -31,7 +36,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'tmdb_id' => $tmdbId,
         'poster' => $posterUrl,
         'language' => null,
-        'imdb_id' => $imdb_matches[1],
+        'imdb_id' => $imdb_fallback,
         'production_countries' => [],
         'has_female_director' => 0,
       ];
@@ -42,7 +47,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'tmdb_id' => $tmdbId,
         'poster' => $posterUrl ?? 'https://image.tmdb.org/t/p/w92' . $additionalData['poster_path'],
         'language' => $additionalData['original_language'],
-        'imdb_id' => $additionalData['imdb_id'] ?? $imdb_matches[1],
+        'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
         'production_countries' => array_filter(array_unique(array_map(function($company) {
           return $company['origin_country'];
         }, $additionalData['production_companies'])), function ($country) {
@@ -60,7 +65,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'tmdb_id' => $tmdbId,
         'poster' => $posterUrl,
         'language' => null,
-        'imdb_id' => $imdb_matches[1],
+        'imdb_id' => $imdb_fallback,
         'production_countries' => [],
         'has_female_director' => 0,
       ];
@@ -71,7 +76,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'tmdb_id' => $tmdbId,
         'poster' => $posterUrl ?? 'https://image.tmdb.org/t/p/w92' . $additionalData['poster_path'],
         'language' => $additionalData['original_language'],
-        'imdb_id' => $additionalData['imdb_id'] ?? $imdb_matches[1],
+        'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
         'production_countries' => array_filter(array_unique(array_map(function($company) {
           return $company['origin_country'];
         }, $additionalData['production_companies'])), function ($country) {

@@ -228,6 +228,20 @@
                 }
             });
 
+            function pingHome() {
+                fetch('get_movie_info.php', {
+                    method: 'GET',
+                })
+                .then(response => response.text())
+                .then(rawData => {
+                    if (JSON.parse(rawData)['status'] != 'finished') {
+                        pingHome();
+                    } else {
+                        console.log('finished');
+                    }
+                });
+            }
+
             // File upload
             function uploadFile(file) {
                 const formData = new FormData();
@@ -252,6 +266,8 @@
                     let languages = {};
 
                     if (data.upload_count > 0) {
+                        // Start the process
+                        pingHome();
                         // 25% to 81%
                         const progressBar = document.querySelector('.progress');
                         progressBar.style.height = '25%';
