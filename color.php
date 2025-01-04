@@ -38,7 +38,7 @@ ini_set('display_errors', 1);
       <div class="title">Letterboxd</div>
       <?php
 
-$numPosters = 500;
+$numPosters = 1800;
 
 $PDO = getDatabase();
 $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies LIMIT $numPosters"); // ORDER BY RAND()
@@ -64,6 +64,58 @@ foreach ($posters as $poster) {
 }
 ?>
 <script>
+
+function hslToLab(h, s, l) {
+  // Step 1: Convert HSL to RGB
+  function hslToRgb(h, s, l) {
+    s /= 100;
+    l /= 100;
+
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+
+    return [f(0), f(8), f(4)].map(v => Math.round(v * 255));
+  }
+
+  const [r, g, b] = hslToRgb(h, s, l);
+
+  // Step 2: Convert RGB to XYZ
+  function rgbToXyz(r, g, b) {
+    const normalize = v => {
+      v /= 255;
+      return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+
+    const [rn, gn, bn] = [normalize(r), normalize(g), normalize(b)];
+
+    return [
+      rn * 0.4124564 + gn * 0.3575761 + bn * 0.1804375,
+      rn * 0.2126729 + gn * 0.7151522 + bn * 0.0721750,
+      rn * 0.0193339 + gn * 0.1191920 + bn * 0.9503041,
+    ];
+  }
+
+  const [x, y, z] = rgbToXyz(r, g, b).map(v => v / 100);
+
+  // Step 3: Convert XYZ to LAB
+  function xyzToLab(x, y, z) {
+    const refX = 0.95047;
+    const refY = 1.00000;
+    const refZ = 1.08883;
+
+    const f = t =>
+      t > 0.008856 ? Math.cbrt(t) : (7.787 * t) + (16 / 116);
+
+    const l = (116 * f(y / refY)) - 16;
+    const a = 500 * (f(x / refX) - f(y / refY));
+    const b = 200 * (f(y / refY) - f(z / refZ));
+
+    return [l, a, b];
+  }
+
+  return xyzToLab(x, y, z);
+}
 
   function calculateBestFit(w, h, n, ratio) {
     let bestWidth = 0;
@@ -103,10 +155,14 @@ foreach ($posters as $poster) {
 
   var styleSheet = document.createElement("style");
   styleSheet.textContent = `
-  img {
+  .poster {
     width: ${imageWidth}px;
     height: ${imageHeight}px;
   }
+  img {
+      // display: none;
+      width: 100%;
+} 
   `;
   document.head.appendChild(styleSheet);
   
@@ -124,7 +180,7 @@ foreach ($posters as $poster) {
   let posters = [];
 
   // Preprocess each poster to get targeted location and get a sense for volume by hue
-  const numBuckets = 20;
+  const numBuckets = 60;
   let hueBuckets = {};
   let hueRange = [];
   document.querySelectorAll('.poster').forEach(poster => {
@@ -143,6 +199,7 @@ foreach ($posters as $poster) {
       h: poster.getAttribute('data-hue'),
       s: poster.getAttribute('data-saturation'),
       l: poster.getAttribute('data-lightness'),
+      lstar: hslToLab(poster.getAttribute('data-hue'), poster.getAttribute('data-saturation') * 100, poster.getAttribute('data-lightness') * 100),
       radius,
       angle,
     };
@@ -174,6 +231,7 @@ foreach ($posters as $poster) {
         targetAngle += 2 * Math.PI;
       }
       grid[r][c].angle = targetAngle;
+      grid[r][c].distance = Math.sqrt((targetY - centerY) ** 2 + (targetX - centerX)**2) / Math.sqrt((width / 2)**2 + (height / 2) ** 2);
       allAngles.push([targetAngle, r, c]);
     }
   }
@@ -202,7 +260,7 @@ foreach ($posters as $poster) {
     let bestSaturation = null;
     bestIndex = i;
     for (let i = 0; i < options.length; i++) {
-      let score = Math.sqrt(options[i].s) * (options[i].l);
+      let score = options[i].s; // Math.sqrt(options[i].s) * (1 - options[i].l);
       if (bestSaturation == null || score > bestSaturation) {
         bestSaturation = score;
         bestIndex = i;
@@ -210,6 +268,7 @@ foreach ($posters as $poster) {
     }
 
     selectedPoster = options.splice(bestIndex, 1)[0]; // Returns the removed element
+    // selectedPoster.poster.innerHTML += grid[r][c].bucket;
     return selectedPoster;
   }
   
@@ -303,9 +362,9 @@ foreach ($posters as $poster) {
     }
   }
 
-  posters.forEach(p => {
-    p.poster.remove();
-  })
+  // posters.forEach(p => {
+  //   p.poster.remove();
+  // })
   
 </script>
 </body></html>

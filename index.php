@@ -4,8 +4,72 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Letterboxd Stats</title>
+        <title>Letterboxd Gaps</title>
         <style>
+            @font-face {
+                font-family: SharpGroteskSmBold21;
+                font-display: block;
+                src: url('./fonts/letterboxdLogo.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: SharpGroteskBook15;
+                font-display: block;
+                src: url('./fonts/subtext.woff2') format('woff2');
+            }
+            .title {
+                color: #eff1f2;
+
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .header {
+                font-family: SharpGroteskSmBold21;
+                font-size: 4em;
+                position: relative;
+
+                .progress {
+                    position: absolute;
+                    bottom: 0px;
+                    width: 100%;
+                    overflow: hidden;
+
+                    animation: fillAnimation 3s linear infinite;
+                
+                    .wrapper {
+                        position: absolute;
+                        bottom: 0px;
+                    }
+                }
+
+                .green {
+                    color: #00E054;
+                }
+
+                .blue {
+                    color: #40BCF4;
+                }
+
+                .orange {
+                    color: #FF8000;
+                }
+            }
+            .subtext {
+                font-family: SharpGroteskBook15;
+                font-size: 2em;
+                letter-spacing: 2em;
+
+                /* To offset the last letter spacing */
+                margin-right: -2em;
+            }
+            @keyframes fillAnimation {
+                from {
+                    height: 0%;
+                }
+                to {
+                    height: 100%;
+                }
+                }
             html {
                 background-color: rgb(20, 24, 28);
                 color: rgb(85, 102, 119);
@@ -70,6 +134,17 @@
         </style>
     </head>
     <body>
+        <div class="title">
+            <div class="header">
+                <div class="normal">Letterboxd</div>
+                <div class="progress">
+                    <div class="wrapper">
+                        <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
+                    </div>
+                </div>
+            </div>
+            <div class="subtext">GAPS</div>
+        </div>
         <p>
             Here are some letterboxd stats!
 
