@@ -107,11 +107,21 @@ function handleMovies($watchlistMovies) {
 
   $toUpload = [];
   $movies = [];
+  $new_ids = [];
   foreach ($watchlistMovies as $movie) {
     // If it's already in the database then we can return the data directly
     if (array_key_exists($movie['Letterboxd URI'], $serverMovieInfo)) {
       $movieInfo = $serverMovieInfo[$movie['Letterboxd URI']];
-      $movieInfo['countries'] = json_decode($movieInfo['countries']);
+      // But if it's already in the database but it's still pending, then add it
+      // to the new ids list for the purpose of polling. Should only apply to 
+      // disconnects, but if there was more site traffic there could be more 
+      // overlap in people uploading things. Hoping that with enough seed data
+      // the amount of live fetching we're doing is minimal.
+      if ($movieInfo['status'] == 'pending') {
+        $new_ids[] = $movieInfo['id'];
+      } else {
+        $movieInfo['countries'] = json_decode($movieInfo['countries']);
+      }
       $movies[] = $movieInfo;
     } else {
       // If it's NOT in the database, it's a little more complicated. We'll create
@@ -119,58 +129,52 @@ function handleMovies($watchlistMovies) {
       // In the meantime we'll send back the information that we have from the 
       // watchlist. Additionally we'll send down an ID for the progress that will
       // monitor these movies.
-      $toUpload[] = [$movie['Name'], $movie['Year']];
+      $toUpload[] = [$movie['Letterboxd URI'], $movie['Name'], $movie['Year']];
       $movies[] = [
         'movie_name' => $movie['Name'],
         'year' => $movie['Year'],
         'letterboxd_url' => $movie['Letterboxd URI'],
         'status' => 'pending',
       ];
-      // $newInfo = getMovieInfo($movie['Name'], $movie['Year']);
-      // if ($newInfo) {
-      //   $formattedMovie = [
-      //     'movie_name' => $movie['Name'],
-      //     'year' => $movie['Year'],
-      //     'id' => -1, // there is no ID yet because it hasn't been uploaded
-      //     'tmdb_id' => $newInfo['tmdb_id'],
-      //     'imdb_id' => $newInfo['imdb_id'],
-      //     'letterboxd_url' => $movie['Letterboxd URI'],
-      //     'has_female_director' => $newInfo['has_female_director'] ? 1 : 0,
-      //     'language' => $newInfo['language'],
-      //     'poster' => $newInfo['poster'],
-      //     'countries' => array_values($newInfo['production_countries']),
-      //   ];
-      //   $movies[] = $formattedMovie;
-      //   unset($formattedMovie['id']);
-      //   $formattedMovie['countries'] = json_encode($formattedMovie['countries']);
-      //   $toUpload[] = array_values($formattedMovie);
-      // } else {
-      //   // Error!
-      // }
     }
   }
 
-  // if (count($toUpload) > 0) {
-  //   // Build the query dynamically
-  //   $placeholders = [];
-  //   $bindValues = [];
-  //   foreach ($toUpload as $index => $info) {
-  //     $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
-  //     $bindValues = array_merge($bindValues, $info);
-  //   }
+  if (count($toUpload) > 0) {
+    $placeholders = [];
+    $bindValues = [];
+    foreach ($toUpload as $index => $info) {
+      $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
+      $bindValues = array_merge($bindValues, $info);
+    }
     
-  //   $sql = "INSERT INTO letterboxd.movies 
-  //   (movie_name, `year`, tmdb_id, imdb_id, letterboxd_url, has_female_director, language, poster, countries) 
-  //   VALUES " . implode(', ', $placeholders);
-    
-  //   // Prepare and execute the query
-  //   $stmt = $PDO->prepare($sql);
-  //   $stmt->execute($bindValues);
-  // }
+    $sql = "INSERT INTO letterboxd.movies 
+    (letterboxd_url, movie_name, `year`) 
+    VALUES " . implode(', ', $placeholders);
+    $stmt = $PDO->prepare($sql);
+    $stmt->execute($bindValues);
 
-  usort($movies, function($a, $b) {
-    return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
-  });
+    // Keep track of all of the rows that we're now processing
+    $first_id = $PDO->lastInsertId();
+    // Assume they're all sequential?
+    for ($i = 0; $i < count($toUpload); $i++) {
+      $new_ids[] = $first_id + $i;
+    }
+  }
+  // If any of the other IDs
+  $upload_id = null;
+  if (!empty($new_ids)) {
+    $sql = "INSERT INTO letterboxd.upload_tracking 
+    (uploaded) 
+    VALUES (?)";
+    $stmt = $PDO->prepare($sql);
+    $stmt->execute([json_encode($new_ids)]);
 
-  return $movies;
+    $upload_id = $PDO->lastInsertId();
+  }
+
+  // usort($movies, function($a, $b) {
+  //   return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+  // });
+
+  return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids)];
 }

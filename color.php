@@ -41,12 +41,13 @@ ini_set('display_errors', 1);
 $numPosters = 1800;
 
 $PDO = getDatabase();
-$stmt = $PDO->prepare("SELECT poster, primary_color FROM movies LIMIT $numPosters"); // ORDER BY RAND()
+$stmt = $PDO->prepare("SELECT poster, primary_color, tmdb_id FROM movies LIMIT $numPosters"); // ORDER BY RAND()
 $stmt->execute();
 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 foreach ($posters as $poster) {
   $hsl = json_decode($poster['primary_color'], true);
+  $tmdb_id = $poster['tmdb_id'];
   $poster = 'https://image.tmdb.org/t/p/w92' . $poster['poster'];
 
   $angle = ($hsl['h']) / 360.0 * 2 * M_PI; // Convert Hue to radians
@@ -60,6 +61,8 @@ foreach ($posters as $poster) {
   'data-lightness="' . $hsl['l'] . '" '.
   '>';
   echo '<img src="' . $poster .'" /><br>';
+  echo $tmdb_id;
+
   echo '</div>';
 }
 ?>

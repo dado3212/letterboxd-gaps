@@ -22,6 +22,9 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+
+                -webkit-user-select: none;
+                user-select: none;
             }
             .header {
                 font-family: SharpGroteskSmBold21;
@@ -34,7 +37,7 @@
                     width: 100%;
                     overflow: hidden;
 
-                    animation: fillAnimation 3s linear infinite;
+                    transition: 0.5s ease;
                 
                     .wrapper {
                         position: absolute;
@@ -71,10 +74,15 @@
                 }
                 }
             html {
-                background-color: rgb(20, 24, 28);
+                background-color: #14181c;
                 color: rgb(85, 102, 119);
                 font-size: 16px;
                 font-family: sans-serif;
+
+                transition: 0.3s ease;
+            }
+            html.hover {
+                background-color: #283039;
             }
             #drop-area {
                 border: 2px dashed #ccc;
@@ -134,6 +142,30 @@
         </style>
     </head>
     <body>
+        <?php
+            require_once("tmdb.php");
+
+            error_reporting(E_ALL);
+            ini_set('display_errors', 1);
+
+            // Manually picked 50 notable posters
+            $colors = [
+                152601 => ['red', 'Her'],
+                252171 => ['red', 'A girl walks home alone at night'],
+                284 => ['red/orange', 'The Apartment'],
+                559907 => ['red', 'The Green Knight'],
+                426 => ['orange', 'Vertigo'],
+            ];
+
+            $PDO = getDatabase();
+            $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")"); // ORDER BY RAND()
+            $stmt->execute();
+            $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($posters as $poster) {
+                echo '<img style="width:100px;" src="' . $poster['poster'] .'" />';
+            }
+        ?>
         <div class="title">
             <div class="header">
                 <div class="normal">Letterboxd</div>
@@ -144,14 +176,6 @@
                 </div>
             </div>
             <div class="subtext">GAPS</div>
-        </div>
-        <p>
-            Here are some letterboxd stats!
-
-            Go to <a href="https://letterboxd.com/settings/data/" target="_blank">https://letterboxd.com/settings/data/</a> and export your data. Drag and drop the .zip here.
-        </p>
-        <div id="drop-area">
-            Drag & Drop your .csv or .zip file here
         </div>
 
         <div id="stats">
@@ -174,133 +198,162 @@
         </div>
 
         <script>
-            const dropArea = document.getElementById('drop-area');
+            const listening = true;
+            const dropArea = document.querySelector('html');
             // Prevent default behaviors for drag events
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, e => e.preventDefault());
+                dropArea.addEventListener(eventName, e => e.preventDefault());
             });
 
             // Highlight area on dragover
             ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('hover'));
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('hover'));
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('hover'));
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('hover'));
             });
 
             // Handle file drop
             dropArea.addEventListener('drop', event => {
-            const files = event.dataTransfer.files;
-            if (files.length !== 1) {
-                alert('Please upload a valid .zip or .csv file.');
-                return;
-            }
-            if (files[0].type === 'application/zip' || files[0].type === 'text/csv') {
-                uploadFile(files[0]);
-            } else {
-                alert(files[0].type + ' is not .csv or .zip');
-            }
+                const files = event.dataTransfer.files;
+                if (files.length !== 1) {
+                    alert('Please upload a valid .zip or .csv file.');
+                    return;
+                }
+                if (files[0].type === 'application/zip' || files[0].type === 'text/csv') {
+                    uploadFile(files[0]);
+                } else {
+                    alert(files[0].type + ' is not .csv or .zip');
+                }
             });
 
-        // File upload
-        function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('file', file);
+            // File upload
+            function uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
 
-            const container = document.getElementById('movies');
-            container.innerHTML = '';
+                const container = document.getElementById('movies');
+                container.innerHTML = '';
 
-            fetch('get_watched_list.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                const movies = JSON.parse(data);
-                console.log(movies);
+                fetch('get_watched_list.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(rawData => {
+                    const data = JSON.parse(rawData);
+                    movies = data.movies;
+                    console.log(data);
 
-                let numTotal = 0;
-                let numWomen = 0;
-                let countries = {};
-                let languages = {};
+                    let numTotal = 0;
+                    let numWomen = 0;
+                    let countries = {};
+                    let languages = {};
 
-                movies.forEach(movie => {
-                    const movieDiv = document.createElement('div');
-                    movieDiv.className = 'movie';
-                    if (movie.poster) {
-                        movieDiv.innerHTML = `
-                            <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
-                        `;
-                    } else {
-                        movieDiv.className += ' missing';
-                        movieDiv.innerHTML = `
-                            <span>${movie.movie_name} (${movie.year})</span>
-                        `;
+                    if (data.upload_count > 0) {
+                        // 25% to 81%
+                        const progressBar = document.querySelector('.progress');
+                        progressBar.style.height = '25%';
+
+                        const interval = setInterval(() => {
+                            fetch('poll_status.php?id=' + data.upload_id)
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data);
+                                progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
+                                if (data.done == data.total) {
+                                    clearTimeout(interval);
+                                }
+                            });
+                        }, 2000);
                     }
-                    if (movie.tmdb_id) {
-                        if (movie.has_female_director) {
-                            numWomen += 1;
 
-                            movieDiv.className += ' female';
-                        }
-                        numTotal += 1;
-                        console.log(movie.language);
-                        if (!(movie.language in languages)) {
-                            languages[movie.language] = 0;
-                        }
-                        languages[movie.language] += 1;
-                        for (const country of movie.countries) {
-                            if (!(country in countries)) {
-                                countries[country] = 0;
+                    movies.forEach(movie => {
+                        const movieDiv = document.createElement('div');
+                        movieDiv.className = 'movie';
+                        if (movie.poster) {
+                            if (movie.poster.startsWith('/')) {
+                                movieDiv.innerHTML = `
+                                    <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
+                                `;
+                            } else {
+                                movieDiv.innerHTML = `
+                                    <img src="${movie.poster}" alt="${movie.movie_name} (${movie.year})">
+                                `;
                             }
-                            countries[country] += 1;
+                        } else {
+                            movieDiv.className += ' missing';
+                            movieDiv.innerHTML = `
+                                <span>${movie.movie_name} (${movie.year})</span>
+                            `;
                         }
-                    }
-                    container.appendChild(movieDiv);
+                        if (movie.tmdb_id) {
+                            if (movie.has_female_director) {
+                                numWomen += 1;
+
+                                movieDiv.className += ' female';
+                            }
+                            numTotal += 1;
+                            if (movie.language) {
+                                if (!(movie.language in languages)) {
+                                    languages[movie.language] = 0;
+                                }
+                                languages[movie.language] += 1;
+                            }
+                            if (movie.countries) {
+                                for (const country of movie.countries) {
+                                    if (!(country in countries)) {
+                                        countries[country] = 0;
+                                    }
+                                    countries[country] += 1;
+                                }
+                            }
+                        }
+                        container.appendChild(movieDiv);
+                    });
+
+                    // fetch('scrape_countries.php', {
+                    //     method: 'GET',
+                    // })
+                    // .then(response => response.text())
+                    // .then(data => {
+                    //     const countryLanguageInfo = JSON.parse(data);
+                    //     console.log(countryLanguageInfo);
+
+                    //     // Handle stats setup
+                    //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
+                    //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
+
+                    //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
+
+                    //     let countryHTML = '';
+                    //     for (const country in countryLanguageInfo['countries']) {
+                    //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
+                    //         if (country in countries) {
+                    //             countryHTML += '✅: ' + countries[country] + '</a>';
+                    //         } else {
+                    //             countryHTML += '❌ </a>';
+                    //         }
+                    //     }
+                    //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
+
+                    //     let languageHTML = '';
+                    //     for (const language in countryLanguageInfo['languages']) {
+                    //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
+                    //         if (language in languages) {
+                    //             languageHTML += '✅: ' + languages[language] + '</a>';
+                    //         } else {
+                    //             languageHTML += '❌ </a>';
+                    //         }
+                    //     }
+                    //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
+                    // });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                 });
-
-                // fetch('scrape_countries.php', {
-                //     method: 'GET',
-                // })
-                // .then(response => response.text())
-                // .then(data => {
-                //     const countryLanguageInfo = JSON.parse(data);
-                //     console.log(countryLanguageInfo);
-
-                //     // Handle stats setup
-                //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
-                //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
-
-                //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
-
-                //     let countryHTML = '';
-                //     for (const country in countryLanguageInfo['countries']) {
-                //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
-                //         if (country in countries) {
-                //             countryHTML += '✅: ' + countries[country] + '</a>';
-                //         } else {
-                //             countryHTML += '❌ </a>';
-                //         }
-                //     }
-                //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
-
-                //     let languageHTML = '';
-                //     for (const language in countryLanguageInfo['languages']) {
-                //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
-                //         if (language in languages) {
-                //             languageHTML += '✅: ' + languages[language] + '</a>';
-                //         } else {
-                //             languageHTML += '❌ </a>';
-                //         }
-                //     }
-                //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
-                // });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
+            }
         </script>
     </body>
 </html>
