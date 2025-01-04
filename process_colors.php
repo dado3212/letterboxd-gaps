@@ -5,8 +5,8 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-function getDominantColor($imagePath) {
-  $image = imagecreatefromjpeg($imagePath);
+function getDominantColor($imageData) {
+  $image = imagecreatefromstring($imageData);
   $width = imagesx($image);
   $height = imagesy($image);
 
@@ -76,14 +76,44 @@ if (count($posters) === 0) {
   die('No more to process!');
 }
 
-$new_colors = [];
+$poster_urls = [];
 foreach ($posters as $poster) {
-  $id = $poster['id'];
-  $poster = $poster['poster'];
-  $rgb = getDominantColor($poster);
-  $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+  $poster_urls[$poster['id']] = $poster['poster'];
+}
 
-  $new_colors[$id] = $hsl;
+$multiHandle = curl_multi_init();
+$handles = [];
+
+foreach ($poster_urls as $id => $url) {
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_multi_add_handle($multiHandle, $ch);
+  $handles[$id] = $ch;
+}
+
+do {
+  curl_multi_exec($multiHandle, $active);
+  curl_multi_select($multiHandle);
+} while ($active);
+
+$images = [];
+foreach ($handles as $id => $ch) {
+  $data = curl_multi_getcontent($ch);
+  $images[$id] = $data ? $data : null;
+  curl_multi_remove_handle($multiHandle, $ch);
+  curl_close($ch);
+}
+
+curl_multi_close($multiHandle);
+
+$new_colors = [];
+foreach ($images as $id => $data) {
+  if ($data) {
+    $rgb = getDominantColor($data);
+    $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+  
+    $new_colors[$id] = $hsl;
+  }
 }
 
 $ids = implode(',', array_keys($new_colors));

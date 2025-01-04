@@ -45,7 +45,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
 
       $info = [
         'tmdb_id' => $tmdbId,
-        'poster' => $posterUrl ?? 'https://image.tmdb.org/t/p/w92' . $additionalData['poster_path'],
+        'poster' => $posterUrl ?? ($additionalData['poster_path'] ? ('https://image.tmdb.org/t/p/w92' . $additionalData['poster_path']) : null),
         'language' => $additionalData['original_language'],
         'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
         'production_countries' => array_filter(array_unique(array_map(function($company) {
@@ -74,7 +74,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
 
       $info = [
         'tmdb_id' => $tmdbId,
-        'poster' => $posterUrl ?? 'https://image.tmdb.org/t/p/w92' . $additionalData['poster_path'],
+        'poster' => $posterUrl ?? ($additionalData['poster_path'] ? ('https://image.tmdb.org/t/p/w92' . $additionalData['poster_path']) : null),
         'language' => $additionalData['original_language'],
         'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
         'production_countries' => array_filter(array_unique(array_map(function($company) {

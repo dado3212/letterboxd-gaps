@@ -20,7 +20,7 @@ if ($output[0] == 'more' || $output[0] == 'finished') {
 // $info = getInfo('https://boxd.it/aPvo', 'Frozen', '2021');
 // $info = getInfo('https://boxd.it/2o4Y', 'The Vow', '2012');
 // $info = getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020');
-
+// $info = getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020');
 // echo '<img src="' . $info['poster'] . '">';
 // var_export($info);
 
