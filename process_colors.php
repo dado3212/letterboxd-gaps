@@ -5,8 +5,8 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-function getDominantColor($imageData) {
-  $image = imagecreatefromstring($imageData);
+function getDominantColor($imagePath) {
+  $image = imagecreatefromjpeg($imagePath);
   $width = imagesx($image);
   $height = imagesy($image);
 
@@ -67,7 +67,7 @@ function rgbToHsl($r, $g, $b) {
 
 $PDO = getDatabase();
 # How did we get 3 with no poster?
-$stmt = $PDO->prepare("SELECT id, poster FROM movies WHERE primary_color IS NULL AND poster IS NOT NULL LIMIT 500");
+$stmt = $PDO->prepare("SELECT id, poster FROM movies WHERE primary_color IS NULL AND poster IS NOT NULL LIMIT 250");
 $stmt->execute();
 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -76,44 +76,14 @@ if (count($posters) === 0) {
   die('No more to process!');
 }
 
-$poster_urls = [];
-foreach ($posters as $poster) {
-  $poster_urls[$poster['id']] = $poster['poster'];
-}
-
-$multiHandle = curl_multi_init();
-$handles = [];
-
-foreach ($poster_urls as $id => $url) {
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_multi_add_handle($multiHandle, $ch);
-  $handles[$id] = $ch;
-}
-
-do {
-  curl_multi_exec($multiHandle, $active);
-  curl_multi_select($multiHandle);
-} while ($active);
-
-$images = [];
-foreach ($handles as $id => $ch) {
-  $data = curl_multi_getcontent($ch);
-  $images[$id] = $data ? $data : null;
-  curl_multi_remove_handle($multiHandle, $ch);
-  curl_close($ch);
-}
-
-curl_multi_close($multiHandle);
-
 $new_colors = [];
-foreach ($images as $id => $data) {
-  if ($data) {
-    $rgb = getDominantColor($data);
-    $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
-  
-    $new_colors[$id] = $hsl;
-  }
+foreach ($posters as $poster) {
+  $id = $poster['id'];
+  $poster = $poster['poster'];
+  $rgb = getDominantColor($poster);
+  $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+
+  $new_colors[$id] = $hsl;
 }
 
 $ids = implode(',', array_keys($new_colors));

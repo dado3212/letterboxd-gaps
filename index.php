@@ -16,15 +16,16 @@
                 font-display: block;
                 src: url('./fonts/subtext.woff2') format('woff2');
             }
-            .title {
-                color: #eff1f2;
-
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+            .center {
+                position: relative;
 
                 -webkit-user-select: none;
                 user-select: none;
+            }
+            .title {
+                color: #eff1f2;
+                text-align: center; 
+                padding: 35px 60px;
             }
             .header {
                 font-family: SharpGroteskSmBold21;
@@ -78,27 +79,27 @@
                 color: rgb(85, 102, 119);
                 font-size: 16px;
                 font-family: sans-serif;
+                height: 100%;
 
                 transition: 0.3s ease;
+            }
+            body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             html.hover {
                 background-color: #283039;
             }
-            #drop-area {
-                border: 2px dashed #ccc;
-                border-radius: 10px;
-                width: 400px;
-                height: 90px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 50px auto;
-                text-align: center;
+            .center img {
+                border-radius: 4px;
+                position: absolute;
             }
-            #drop-area.hover {
-                border-color: #666;
-                background-color: #f7f7f7;
-            }
+            
             #movies {
                 display: flex;
                 max-width: 800px;
@@ -142,49 +143,97 @@
         </style>
     </head>
     <body>
-        <?php
-            require_once("tmdb.php");
-
-            error_reporting(E_ALL);
-            ini_set('display_errors', 1);
-
-            // Manually picked 50 notable posters
-            $colors = [
-                152601 => ['red', 'Her'],
-                252171 => ['red', 'A girl walks home alone at night'],
-                284 => ['red/orange', 'The Apartment'],
-                426 => ['orange', 'Vertigo'],
-                9806 => ['red', 'The Incredibles'],
-                843 => ['red', 'In the mood for love'],
-                592695 => ['pink', 'Pleasure'],
-                1049638 => ['orange', 'Rye Lane'],
-                835113 => ['orange', 'Woman of the hour'],
-                194 => ['red', 'Amelie'],
-                
-            ];
-
-            $PDO = getDatabase();
-            $stmt = $PDO->prepare("SELECT poster, primary_color FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")"); // ORDER BY RAND()
-            $stmt->execute();
-            $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($posters as $poster) {
-                echo '<img style="width:100px;" src="' . $poster['poster'] .'" />';
-            }
-        ?>
-        <div class="title">
-            <div class="header">
-                <div class="normal">Letterboxd</div>
-                <div class="progress">
-                    <div class="wrapper">
-                        <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
+        <div class="center">
+            <div class="title">
+                <div class="header">
+                    <div class="normal">Letterboxd</div>
+                    <div class="progress">
+                        <div class="wrapper">
+                            <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
+                        </div>
                     </div>
                 </div>
+                <div class="subtext">GAPS</div>
             </div>
-            <div class="subtext">GAPS</div>
+            <?php
+                require_once("tmdb.php");
+
+                // Manually picked 50 notable posters
+                $colors = [
+                    152601 => ['red', 'Her'],
+                    252171 => ['red', 'A girl walks home alone at night'],
+                    284 => ['red/orange', 'The Apartment'],
+                    426 => ['orange', 'Vertigo'],
+                    9806 => ['red', 'The Incredibles'],
+                    843 => ['red', 'In the mood for love'],
+                    592695 => ['pink', 'Pleasure'],
+                    1049638 => ['orange', 'Rye Lane'],
+                    835113 => ['orange', 'Woman of the hour'],
+                    194 => ['red', 'Amelie'],
+                    110 => ['red', 'Red'],
+                    994108 => ['orange?', 'All of us strangers'],
+                    693134 => ['orange', 'DUne 2'],
+                    290098 => ['orange-yellow', 'The Handmaiden'],
+                    3086 => ['yellow', 'The Lady Eve'],
+                    814340 => ['yellow', 'Cha Cha Real Smooth'],
+                    212778 => ['yellow', 'Chef'],
+                    773 => ['yellow', 'little miss sunshine'],
+                    389 => ['yellow', '12 angry men'],
+                    86838 => ['lime green', 'seven psychopaths'],
+                    91854 => ['green', 'seawall'],
+                    85350 => ['green', 'boyhood'],
+                    60308 => ['green', 'moneyball'],
+                    1386881 => ['green', 'james acaster hecklers welcome'],
+                    995771 => ['light blue', 'la frontera'],
+                    965150 => ['blue', 'aftersun'],
+                    149870 => ['blue', 'the wind rises'],
+                    394117 => ['blue', 'the florida project'],
+                    12 => ['blue', 'finding nemo'],
+                    398818 => ['blue', 'call me by your name'],
+                    372058 => ['blue', 'your name'],
+                    38757 => ['yellow', 'tangled'],
+                    1160164 => ['pink', 'eras tour'],
+                    328387 => ['pink/blue', 'nerve'],
+                    424781 => ['purple', 'sorry to bother you'],
+                    121986 => ['pink', 'frances ha'],
+                    354275 => ['purple', 'right now, wrong then'],
+                    313369 => ['dark blue/purple', 'la la land'],
+                    20139 => ['purple', 'childrens hour'],
+                    10315 => ['orange', 'fantastic mr fox'],
+                    866398 => ['orange yellow', 'the beekeeper'],
+                    10681 => ['purply', 'walle']
+                ];
+
+                $PDO = getDatabase();
+                $stmt = $PDO->prepare("SELECT poster, primary_color, id FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")");
+                $stmt->execute();
+                $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                usort($posters, function($a, $b) {
+                    return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+                });
+
+                foreach ($posters as $poster) {
+                    echo '<img style="width:100px;" src="' . $poster['poster'] .'" data-id="' . $poster['id'] . '" />';
+                }
+            ?>
+            <script>
+                var positions = [
+                    {id: 1566, width: 70, left: -120, top: -120},
+                    {id: 372, width: 60, left: -150, top: 0},
+                    {id: 1344, width: 80, }
+                ];
+                for (const position of positions) {
+                    console.log(position);
+                    const item = document.querySelector(`.center img[data-id="${position.id}"]`);
+                    item.style.width = `${position.width}px`;
+                    item.style.top = `${position.top}px`;
+                    item.style.left = `${position.left}px`;
+                }
+            </script>
         </div>
 
-        <div id="stats">
+        <!-- <div id="stats">
             <div id="gender">
                 <div id="female"></div>
                 <div id="total"></div>
@@ -201,7 +250,7 @@
         </div>
 
         <div id="movies">
-        </div>
+        </div>-->
 
         <script>
             const listening = true;
