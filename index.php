@@ -16,6 +16,11 @@
                 font-display: block;
                 src: url('./fonts/subtext.woff2') format('woff2');
             }
+            @font-face {
+                font-family: GraphikSemiBold;
+                font-display: block;
+                src: url('./fonts/Graphik-Semibold-Web.woff') format('woff');
+            }
             .center-wrapper {
                 width: 100%;
                 height: 100%;
@@ -45,7 +50,7 @@
                 top: 0px;
                 left: 0px;
 
-                transition: top 2s, left 2s;
+                transition: top 2s, left 1s;
 
                 .progress {
                     position: absolute;
@@ -86,6 +91,46 @@
                 margin-left: 50px;
                 letter-spacing: 1em;
             }
+            .menu {
+                display: flex;
+                align-items: center;
+                padding: 5px 0;
+                justify-content: center;
+            }
+            .menu button {
+                all: unset;
+                cursor: pointer;
+                padding: 9px 12px 8px;
+                border-radius: 3px;
+                margin-left: 34px;
+                background: #00ac1c;
+                box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, .3);
+                color: #f4fcf0;
+                text-transform: uppercase;
+                -webkit-font-smoothing: antialiased;
+
+                font-family: GraphikSemiBold, sans-serif;
+
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -o-user-select: none;
+                user-select: none;
+
+                font-size: 0.8em;
+                font-weight: 400;
+                letter-spacing: .075em;
+                line-height: 12px;
+            }
+            .menu button:hover {
+                background: #009d1a;
+                color: #fff;
+            }
+            .menu #numMovies .total {
+                font-weight: bold;
+            }
+            .menu #numMovies .filter {
+                display: none;
+            }
             .subtext {
                 font-family: SharpGroteskBook15;
                 font-size: 2em;
@@ -97,7 +142,7 @@
                 position: relative;
                 top: 0px;
                 left: 0px;
-                transition: top 2s, left 2s, letter-spacing 2s;
+                transition: top 2s, left 1s, letter-spacing 2s;
             }
             @keyframes fillAnimation {
                 from {
@@ -109,7 +154,7 @@
             }
             html {
                 background-color: #14181c;
-                color: rgb(85, 102, 119);
+                color: #d8e0e8;
                 font-size: 16px;
                 font-family: sans-serif;
                 height: 100%;
@@ -186,7 +231,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="subtext" onclick="transitionToAnalysis()">GAPS</div>
+                    <div class="subtext">GAPS</div>
                 </div>
                 <?php
                     require_once("tmdb.php");
@@ -272,6 +317,11 @@
                     <div class="normal">Letterboxd</div>
                 </div>
                 <div class="subtext" onclick="transitionToAnalysis()">GAPS</div>
+            </div>
+            <div class="menu">
+                <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
+                <button class="gender" onclick="femaleDirectors()">♀ Female Directors</button>
+                <button class="countries">Countries</button>
             </div>
         </div>
 
@@ -359,6 +409,15 @@
                 });
             }
 
+            function femaleDirectors() {
+                document.querySelectorAll('.movie:not(.female)').forEach(poster => {
+                    poster.style.opacity = 0.2;
+                });
+                const numFilter = document.querySelector('#numMovies .filter');
+                numFilter.innerHTML = `${document.querySelectorAll('.movie.female').length} out of `;
+                numFilter.style.display = 'initial';
+            }
+
             function transitionToAnalysis() {
                 // Fade out the imgs
                 // TODO: Offset them
@@ -405,6 +464,8 @@
                     let numWomen = 0;
                     let countries = {};
                     let languages = {};
+
+                    document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString('en-US');
 
                     function calculateBestFit(w, h, n, ratio) {
                         let bestWidth = 0;
