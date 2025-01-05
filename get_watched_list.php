@@ -172,9 +172,9 @@ function handleMovies($watchlistMovies) {
     $upload_id = $PDO->lastInsertId();
   }
 
-  // usort($movies, function($a, $b) {
-  //   return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
-  // });
+  usort($movies, function($a, $b) {
+    return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+  });
 
   return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids)];
 }

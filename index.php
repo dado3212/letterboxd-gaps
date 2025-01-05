@@ -16,21 +16,36 @@
                 font-display: block;
                 src: url('./fonts/subtext.woff2') format('woff2');
             }
+            .center-wrapper {
+                width: 100%;
+                height: 100%;
+
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
             .center {
                 position: relative;
 
                 -webkit-user-select: none;
                 user-select: none;
             }
-            .title {
-                color: #eff1f2;
+            .center .title {
                 text-align: center; 
                 padding: 35px 60px;
+            }
+            .title {
+                color: #eff1f2;
             }
             .header {
                 font-family: SharpGroteskSmBold21;
                 font-size: 4em;
                 position: relative;
+                top: 0px;
+                left: 0px;
+
+                transition: top 2s, left 2s;
 
                 .progress {
                     position: absolute;
@@ -58,6 +73,19 @@
                     color: #FF8000;
                 }
             }
+            .nav {
+                display: none;
+            }
+            .nav .title {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-left: -80px;
+            }
+            .nav .subtext {
+                margin-left: 50px;
+                letter-spacing: 1em;
+            }
             .subtext {
                 font-family: SharpGroteskBook15;
                 font-size: 2em;
@@ -65,6 +93,11 @@
 
                 /* To offset the last letter spacing */
                 margin-right: -2em;
+
+                position: relative;
+                top: 0px;
+                left: 0px;
+                transition: top 2s, left 2s, letter-spacing 2s;
             }
             @keyframes fillAnimation {
                 from {
@@ -87,10 +120,6 @@
                 width: 100%;
                 height: 100%;
                 margin: 0;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
             html.hover {
                 background-color: #1c2127;
@@ -99,13 +128,13 @@
                 border-radius: 4px;
                 position: absolute;
 
-                transition: 0.3s ease;
+                transition: top 0.3s, left 0.3s, opacity 2s;
             }
             
             #movies {
                 display: flex;
-                max-width: 800px;
                 flex-wrap: wrap;
+                justify-content: center;
                 gap: 4px;
                 margin: 0 auto;
 
@@ -145,92 +174,105 @@
         </style>
     </head>
     <body>
-        <div class="center">
+        <!-- The main center -->
+        <div class="center-wrapper">
+            <div class="center">
+                <div class="title">
+                    <div class="header">
+                        <div class="normal">Letterboxd</div>
+                        <div class="progress">
+                            <div class="wrapper">
+                                <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="subtext" onclick="transitionToAnalysis()">GAPS</div>
+                </div>
+                <?php
+                    require_once("tmdb.php");
+
+                    // Manually picked 50 notable posters
+                    $colors = [
+                        152601 => ['red', 'Her'],
+                        252171 => ['red', 'A girl walks home alone at night'],
+                        284 => ['red/orange', 'The Apartment'],
+                        426 => ['orange', 'Vertigo'],
+                        9806 => ['red', 'The Incredibles'],
+                        843 => ['red', 'In the mood for love'],
+                        // 592695 => ['pink', 'Pleasure'],
+                        1049638 => ['orange', 'Rye Lane'],
+                        835113 => ['orange', 'Woman of the hour'],
+                        194 => ['red', 'Amelie'],
+                        110 => ['red', 'Red'],
+                        // 994108 => ['orange?', 'All of us strangers'],
+                        693134 => ['orange', 'DUne 2'],
+                        // 290098 => ['orange-yellow', 'The Handmaiden'],
+                        3086 => ['yellow', 'The Lady Eve'],
+                        814340 => ['yellow', 'Cha Cha Real Smooth'],
+                        // 212778 => ['yellow', 'Chef'],
+                        773 => ['yellow', 'little miss sunshine'],
+                        389 => ['yellow', '12 angry men'],
+                        86838 => ['lime green', 'seven psychopaths'],
+                        91854 => ['green', 'seawall'],
+                        85350 => ['green', 'boyhood'],
+                        60308 => ['green', 'moneyball'],
+                        1386881 => ['green', 'james acaster hecklers welcome'],
+                        995771 => ['light blue', 'la frontera'],
+                        965150 => ['blue', 'aftersun'],
+                        149870 => ['blue', 'the wind rises'],
+                        394117 => ['blue', 'the florida project'],
+                        12 => ['blue', 'finding nemo'],
+                        398818 => ['blue', 'call me by your name'],
+                        372058 => ['blue', 'your name'],
+                        38757 => ['yellow', 'tangled'],
+                        // 1160164 => ['pink', 'eras tour'],
+                        328387 => ['pink/blue', 'nerve'],
+                        424781 => ['purple', 'sorry to bother you'],
+                        121986 => ['pink', 'frances ha'],
+                        354275 => ['purple', 'right now, wrong then'],
+                        313369 => ['dark blue/purple', 'la la land'],
+                        20139 => ['purple', 'childrens hour'],
+                        10315 => ['orange', 'fantastic mr fox'],
+                        866398 => ['orange yellow', 'the beekeeper'],
+                        10681 => ['purply', 'walle']
+                    ];
+
+                    $PDO = getDatabase();
+                    $stmt = $PDO->prepare("SELECT poster, primary_color, id, tmdb_id FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")");
+                    $stmt->execute();
+                    $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    usort($posters, function($a, $b) {
+                        return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+                    });
+
+                    foreach ($posters as $poster) {
+                        echo '<img style="width:100px;" src="' . $poster['poster'] .'" data-tmdb="' . $poster['tmdb_id'] . '" />';
+                    }
+                ?>
+                <script>
+                    // Manually created gallery wall using JS code in READMe
+                    var positions = [{"id":252171,"width":70,"left":107,"top":-254},{"id":843,"width":80,"left":312,"top":-254},{"id":284,"width":60,"left":117,"top":-108},{"id":194,"width":60,"left":218,"top":-259},{"id":9806,"width":100,"left":195,"top":-153},{"id":426,"width":80,"left":16,"top":-123},{"id":1049638,"width":70,"left":7,"top":-248},{"id":835113,"width":90,"left":-112,"top":-204},{"id":38757,"width":70,"left":-204,"top":-154},{"id":693134,"width":80,"left":-89,"top":-47},{"id":10315,"width":90,"left":-109,"top":234},{"id":866398,"width":110,"left":-229,"top":-28},{"id":3086,"width":70,"left":11,"top":184},{"id":814340,"width":80,"left":-328,"top":44},{"id":773,"width":70,"left":-90,"top":105},{"id":389,"width":100,"left":-228,"top":163},{"id":86838,"width":80,"left":-2,"top":312},{"id":91854,"width":60,"left":122,"top":347},{"id":85350,"width":60,"left":239,"top":200},{"id":60308,"width":90,"left":112,"top":196},{"id":965150,"width":50,"left":350,"top":362},{"id":995771,"width":100,"left":328,"top":195},{"id":1386881,"width":90,"left":224,"top":318},{"id":149870,"width":70,"left":444,"top":173},{"id":394117,"width":90,"left":528,"top":91},{"id":12,"width":90,"left":444,"top":295},{"id":398818,"width":70,"left":548,"top":243},{"id":328387,"width":60,"left":748,"top":-94},{"id":372058,"width":100,"left":635,"top":152},{"id":10681,"width":90,"left":750,"top":35},{"id":313369,"width":100,"left":632,"top":-22},{"id":20139,"width":90,"left":515,"top":-64},{"id":424781,"width":100,"left":620,"top":-189},{"id":121986,"width":80,"left":515,"top":-211},{"id":354275,"width":90,"left":404,"top":-137},{"id":152601,"width":50,"left":423,"top":-235},{"id":110,"width":60,"left":318,"top":-104}];
+                    for (const position of positions) {
+                        const item = document.querySelector(`.center img[data-tmdb="${position.id}"]`);
+                        item.style.width = `${position.width}px`;
+                        item.style.top = `${position.top}px`;
+                        item.style.left = `${position.left}px`;
+                        item.setAttribute('top', position.top);
+                        item.setAttribute('left', position.left);
+                    }
+                </script>
+            </div>
+        </div>
+
+        <!-- After uploading, top bar -->
+        <div class="nav">
             <div class="title">
                 <div class="header">
                     <div class="normal">Letterboxd</div>
-                    <div class="progress">
-                        <div class="wrapper">
-                            <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
-                        </div>
-                    </div>
                 </div>
-                <div class="subtext">GAPS</div>
+                <div class="subtext" onclick="transitionToAnalysis()">GAPS</div>
             </div>
-            <?php
-                require_once("tmdb.php");
-
-                // Manually picked 50 notable posters
-                $colors = [
-                    152601 => ['red', 'Her'],
-                    252171 => ['red', 'A girl walks home alone at night'],
-                    284 => ['red/orange', 'The Apartment'],
-                    426 => ['orange', 'Vertigo'],
-                    9806 => ['red', 'The Incredibles'],
-                    843 => ['red', 'In the mood for love'],
-                    // 592695 => ['pink', 'Pleasure'],
-                    1049638 => ['orange', 'Rye Lane'],
-                    835113 => ['orange', 'Woman of the hour'],
-                    194 => ['red', 'Amelie'],
-                    110 => ['red', 'Red'],
-                    // 994108 => ['orange?', 'All of us strangers'],
-                    693134 => ['orange', 'DUne 2'],
-                    // 290098 => ['orange-yellow', 'The Handmaiden'],
-                    3086 => ['yellow', 'The Lady Eve'],
-                    814340 => ['yellow', 'Cha Cha Real Smooth'],
-                    // 212778 => ['yellow', 'Chef'],
-                    773 => ['yellow', 'little miss sunshine'],
-                    389 => ['yellow', '12 angry men'],
-                    86838 => ['lime green', 'seven psychopaths'],
-                    91854 => ['green', 'seawall'],
-                    85350 => ['green', 'boyhood'],
-                    60308 => ['green', 'moneyball'],
-                    1386881 => ['green', 'james acaster hecklers welcome'],
-                    995771 => ['light blue', 'la frontera'],
-                    965150 => ['blue', 'aftersun'],
-                    149870 => ['blue', 'the wind rises'],
-                    394117 => ['blue', 'the florida project'],
-                    12 => ['blue', 'finding nemo'],
-                    398818 => ['blue', 'call me by your name'],
-                    372058 => ['blue', 'your name'],
-                    38757 => ['yellow', 'tangled'],
-                    // 1160164 => ['pink', 'eras tour'],
-                    328387 => ['pink/blue', 'nerve'],
-                    424781 => ['purple', 'sorry to bother you'],
-                    121986 => ['pink', 'frances ha'],
-                    354275 => ['purple', 'right now, wrong then'],
-                    313369 => ['dark blue/purple', 'la la land'],
-                    20139 => ['purple', 'childrens hour'],
-                    10315 => ['orange', 'fantastic mr fox'],
-                    866398 => ['orange yellow', 'the beekeeper'],
-                    10681 => ['purply', 'walle']
-                ];
-
-                $PDO = getDatabase();
-                $stmt = $PDO->prepare("SELECT poster, primary_color, id, tmdb_id FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")");
-                $stmt->execute();
-                $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                usort($posters, function($a, $b) {
-                    return (float)json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float)json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
-                });
-
-                foreach ($posters as $poster) {
-                    echo '<img style="width:100px;" src="' . $poster['poster'] .'" data-tmdb="' . $poster['tmdb_id'] . '" />';
-                }
-            ?>
-            <script>
-                // Manually created gallery wall using JS code in READMe
-                var positions = [{"id":252171,"width":70,"left":107,"top":-254},{"id":843,"width":80,"left":312,"top":-254},{"id":284,"width":60,"left":117,"top":-108},{"id":194,"width":60,"left":218,"top":-259},{"id":9806,"width":100,"left":195,"top":-153},{"id":426,"width":80,"left":16,"top":-123},{"id":1049638,"width":70,"left":7,"top":-248},{"id":835113,"width":90,"left":-112,"top":-204},{"id":38757,"width":70,"left":-204,"top":-154},{"id":693134,"width":80,"left":-89,"top":-47},{"id":10315,"width":90,"left":-109,"top":234},{"id":866398,"width":110,"left":-229,"top":-28},{"id":3086,"width":70,"left":11,"top":184},{"id":814340,"width":80,"left":-328,"top":44},{"id":773,"width":70,"left":-90,"top":105},{"id":389,"width":100,"left":-228,"top":163},{"id":86838,"width":80,"left":-2,"top":312},{"id":91854,"width":60,"left":122,"top":347},{"id":85350,"width":60,"left":239,"top":200},{"id":60308,"width":90,"left":112,"top":196},{"id":965150,"width":50,"left":350,"top":362},{"id":995771,"width":100,"left":328,"top":195},{"id":1386881,"width":90,"left":224,"top":318},{"id":149870,"width":70,"left":444,"top":173},{"id":394117,"width":90,"left":528,"top":91},{"id":12,"width":90,"left":444,"top":295},{"id":398818,"width":70,"left":548,"top":243},{"id":328387,"width":60,"left":748,"top":-94},{"id":372058,"width":100,"left":635,"top":152},{"id":10681,"width":90,"left":750,"top":35},{"id":313369,"width":100,"left":632,"top":-22},{"id":20139,"width":90,"left":515,"top":-64},{"id":424781,"width":100,"left":620,"top":-189},{"id":121986,"width":80,"left":515,"top":-211},{"id":354275,"width":90,"left":404,"top":-137},{"id":152601,"width":50,"left":423,"top":-235},{"id":110,"width":60,"left":318,"top":-104}];
-                for (const position of positions) {
-                    const item = document.querySelector(`.center img[data-tmdb="${position.id}"]`);
-                    item.style.width = `${position.width}px`;
-                    item.style.top = `${position.top}px`;
-                    item.style.left = `${position.left}px`;
-                    item.setAttribute('top', position.top);
-                    item.setAttribute('left', position.left);
-                }
-            </script>
         </div>
 
         <!-- <div id="stats">
@@ -249,8 +291,9 @@
             </div>
         </div>
 
+        -->
         <div id="movies">
-        </div>-->
+        </div>
 
         <script>
             const listening = true;
@@ -316,6 +359,29 @@
                 });
             }
 
+            function transitionToAnalysis() {
+                // Fade out the imgs
+                // TODO: Offset them
+                document.querySelectorAll('.center img').forEach(img => img.style.opacity = '0%');
+
+                setTimeout(() => {
+                    // Animate the title up to the top
+                    const header = document.querySelector('.center .header');
+                    header.style.top = (-header.getBoundingClientRect().top) + 'px';
+                    header.style.left = '-127px';
+                    // Animate gaps to the top as well
+                    const subtext = document.querySelector('.center .subtext');
+                    subtext.style.top = (-subtext.getBoundingClientRect().top + 20.25) + 'px';
+                    subtext.style.letterSpacing = '1em';
+                    subtext.style.left = '179px';
+
+                    setTimeout(() => {
+                        document.querySelector('.center-wrapper').style.display = 'none';
+                        document.querySelector('.nav').style.display = 'initial';
+                    }, 2000);
+                }, 2000); // takes 2s for the images to fade
+            }
+
             // File upload
             function uploadFile(file) {
                 const formData = new FormData();
@@ -323,6 +389,8 @@
 
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
+
+                transitionToAnalysis();
 
                 fetch('get_watched_list.php', {
                     method: 'POST',
@@ -332,12 +400,54 @@
                 .then(rawData => {
                     const data = JSON.parse(rawData);
                     movies = data.movies;
-                    console.log(data);
 
                     let numTotal = 0;
                     let numWomen = 0;
                     let countries = {};
                     let languages = {};
+
+                    function calculateBestFit(w, h, n, ratio) {
+                        let bestWidth = 0;
+                        let bestColumns = 0;
+                        let bestRows = 0;
+
+                        for (let c = 1; c <= n; c++) {
+                            let r = Math.ceil(n / c); // Calculate rows for current column count
+                            const x = Math.min(w / (c * 1), h / (r * ratio)); // Calculate the scale-independent width x
+                            const y = x * ratio; // Corresponding height
+                            if (c * x <= w && r * y <= h) { // Check if the configuration fits
+                                if (x > bestWidth) { // Update if this scale is better
+                                    bestWidth = x;
+                                    bestColumns = c;
+                                    bestRows = r;
+                                }
+                            }
+                        }
+
+                        return {
+                            imageWidth: bestWidth,
+                            numRows: bestRows,
+                            numCols: bestColumns,
+                        };
+                    }
+
+                    let centerX, centerY, radiusScale;
+                    const width = window.innerWidth;
+                    const height = window.innerHeight - 81.5;
+                    const ratio = 138/92;
+
+                    let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
+                    imageWidth = imageWidth - 4;
+                    const imageHeight = imageWidth * ratio;
+
+                    var styleSheet = document.createElement("style");
+                    styleSheet.textContent = `
+                    #movies .movie {
+                        width: ${imageWidth}px;
+                        height: ${imageHeight}px;
+                    }
+                    `;
+                    document.head.appendChild(styleSheet);
 
                     if (data.upload_count > 0) {
                         // Start the process
