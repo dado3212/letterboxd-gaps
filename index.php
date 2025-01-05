@@ -73,7 +73,7 @@
                 to {
                     height: 100%;
                 }
-                }
+            }
             html {
                 background-color: #14181c;
                 color: rgb(85, 102, 119);
@@ -93,11 +93,13 @@
                 justify-content: center;
             }
             html.hover {
-                background-color: #283039;
+                background-color: #1c2127;
             }
             .center img {
                 border-radius: 4px;
                 position: absolute;
+
+                transition: 0.3s ease;
             }
             
             #movies {
@@ -166,17 +168,17 @@
                     426 => ['orange', 'Vertigo'],
                     9806 => ['red', 'The Incredibles'],
                     843 => ['red', 'In the mood for love'],
-                    592695 => ['pink', 'Pleasure'],
+                    // 592695 => ['pink', 'Pleasure'],
                     1049638 => ['orange', 'Rye Lane'],
                     835113 => ['orange', 'Woman of the hour'],
                     194 => ['red', 'Amelie'],
                     110 => ['red', 'Red'],
-                    994108 => ['orange?', 'All of us strangers'],
+                    // 994108 => ['orange?', 'All of us strangers'],
                     693134 => ['orange', 'DUne 2'],
-                    290098 => ['orange-yellow', 'The Handmaiden'],
+                    // 290098 => ['orange-yellow', 'The Handmaiden'],
                     3086 => ['yellow', 'The Lady Eve'],
                     814340 => ['yellow', 'Cha Cha Real Smooth'],
-                    212778 => ['yellow', 'Chef'],
+                    // 212778 => ['yellow', 'Chef'],
                     773 => ['yellow', 'little miss sunshine'],
                     389 => ['yellow', '12 angry men'],
                     86838 => ['lime green', 'seven psychopaths'],
@@ -192,7 +194,7 @@
                     398818 => ['blue', 'call me by your name'],
                     372058 => ['blue', 'your name'],
                     38757 => ['yellow', 'tangled'],
-                    1160164 => ['pink', 'eras tour'],
+                    // 1160164 => ['pink', 'eras tour'],
                     328387 => ['pink/blue', 'nerve'],
                     424781 => ['purple', 'sorry to bother you'],
                     121986 => ['pink', 'frances ha'],
@@ -205,7 +207,7 @@
                 ];
 
                 $PDO = getDatabase();
-                $stmt = $PDO->prepare("SELECT poster, primary_color, id FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")");
+                $stmt = $PDO->prepare("SELECT poster, primary_color, id, tmdb_id FROM movies WHERE tmdb_id IN (" . implode(',', array_keys($colors)) . ")");
                 $stmt->execute();
                 $posters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -214,21 +216,19 @@
                 });
 
                 foreach ($posters as $poster) {
-                    echo '<img style="width:100px;" src="' . $poster['poster'] .'" data-id="' . $poster['id'] . '" />';
+                    echo '<img style="width:100px;" src="' . $poster['poster'] .'" data-tmdb="' . $poster['tmdb_id'] . '" />';
                 }
             ?>
             <script>
-                var positions = [
-                    {id: 1566, width: 70, left: -120, top: -120},
-                    {id: 372, width: 60, left: -150, top: 0},
-                    {id: 1344, width: 80, }
-                ];
+                // Manually created gallery wall using JS code in READMe
+                var positions = [{"id":252171,"width":70,"left":107,"top":-254},{"id":843,"width":80,"left":312,"top":-254},{"id":284,"width":60,"left":117,"top":-108},{"id":194,"width":60,"left":218,"top":-259},{"id":9806,"width":100,"left":195,"top":-153},{"id":426,"width":80,"left":16,"top":-123},{"id":1049638,"width":70,"left":7,"top":-248},{"id":835113,"width":90,"left":-112,"top":-204},{"id":38757,"width":70,"left":-204,"top":-154},{"id":693134,"width":80,"left":-89,"top":-47},{"id":10315,"width":90,"left":-109,"top":234},{"id":866398,"width":110,"left":-229,"top":-28},{"id":3086,"width":70,"left":11,"top":184},{"id":814340,"width":80,"left":-328,"top":44},{"id":773,"width":70,"left":-90,"top":105},{"id":389,"width":100,"left":-228,"top":163},{"id":86838,"width":80,"left":-2,"top":312},{"id":91854,"width":60,"left":122,"top":347},{"id":85350,"width":60,"left":239,"top":200},{"id":60308,"width":90,"left":112,"top":196},{"id":965150,"width":50,"left":350,"top":362},{"id":995771,"width":100,"left":328,"top":195},{"id":1386881,"width":90,"left":224,"top":318},{"id":149870,"width":70,"left":444,"top":173},{"id":394117,"width":90,"left":528,"top":91},{"id":12,"width":90,"left":444,"top":295},{"id":398818,"width":70,"left":548,"top":243},{"id":328387,"width":60,"left":748,"top":-94},{"id":372058,"width":100,"left":635,"top":152},{"id":10681,"width":90,"left":750,"top":35},{"id":313369,"width":100,"left":632,"top":-22},{"id":20139,"width":90,"left":515,"top":-64},{"id":424781,"width":100,"left":620,"top":-189},{"id":121986,"width":80,"left":515,"top":-211},{"id":354275,"width":90,"left":404,"top":-137},{"id":152601,"width":50,"left":423,"top":-235},{"id":110,"width":60,"left":318,"top":-104}];
                 for (const position of positions) {
-                    console.log(position);
-                    const item = document.querySelector(`.center img[data-id="${position.id}"]`);
+                    const item = document.querySelector(`.center img[data-tmdb="${position.id}"]`);
                     item.style.width = `${position.width}px`;
                     item.style.top = `${position.top}px`;
                     item.style.left = `${position.left}px`;
+                    item.setAttribute('top', position.top);
+                    item.setAttribute('left', position.left);
                 }
             </script>
         </div>
@@ -260,13 +260,32 @@
                 dropArea.addEventListener(eventName, e => e.preventDefault());
             });
 
+            // Don't drag the images
+            document.querySelectorAll('.center img').forEach(img => {
+                img.ondragstart = function() { return false; };
+            });
+
             // Highlight area on dragover
             ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.add('hover'));
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.add('hover');
+                    document.querySelectorAll('.center img').forEach(img => {
+                        const top = parseInt(img.getAttribute('top'));
+                        const left = parseInt(img.getAttribute('left'));
+                        img.style.top = (top + (top - 97) * 0.05) + 'px';
+                        img.style.left = (left + (left - 253) * 0.05) + 'px';
+                    });
+                });
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.remove('hover'));
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.remove('hover');
+                    document.querySelectorAll('.center img').forEach(img => {
+                        img.style.top = img.getAttribute('top') + 'px';
+                        img.style.left = img.getAttribute('left') + 'px';
+                    });
+                });
             });
 
             // Handle file drop

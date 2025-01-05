@@ -65,3 +65,52 @@ SharpGroteskSmBold-21 for logo font - https://www.sharptype.co/typefaces/sharp-g
 https://letterboxd.com/settings/data/ -> Add in a help menu
 
 Truncate table letterboxd.movies
+
+## Home page gallery wall created manually using this code
+```
+const imgs = document.querySelectorAll('.center img');
+let offsetX = 0, offsetY = 0, draggingImg = null;
+    imgs.forEach(img => {
+
+    img.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        draggingImg = img;
+        offsetX = e.clientX - img.offsetLeft;
+        offsetY = e.clientY - img.offsetTop;
+        img.style.cursor = 'grabbing';
+    });
+
+    
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!draggingImg) return;
+    draggingImg.style.top = `${e.clientY - offsetY}px`;
+    draggingImg.style.left = `${e.clientX - offsetX}px`;
+});
+
+document.addEventListener('mouseup', () => {
+if (draggingImg) {
+    draggingImg.style.cursor = 'grab';
+    draggingImg = null;
+}
+});
+document.addEventListener('keydown', (e) => {
+    if (!draggingImg) return;
+    // const step = 10; // Change in size for each keypress
+    if (e.key.toLowerCase() === 'w') {
+        // Increase size
+        // currentWidth += step;
+        draggingImg.style.width = `${draggingImg.width + 10}px`;
+    } else if (e.key.toLowerCase() === 's') {
+        // Decrease size
+        // currentWidth = Math.max(step, currentWidth - step); // Prevent size from going below 10px
+        draggingImg.style.width = `${draggingImg.width - 10}px`;
+    }
+});
+
+let total = [];
+document.querySelectorAll('.center img').forEach(img => {
+  total.push({id: parseInt(img.getAttribute('data-tmdb')), width: img.width, left: parseInt(img.style.left.slice(0, -2)), top: parseInt(img.style.top.slice(0, -2))});
+});
+```
