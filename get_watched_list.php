@@ -28,6 +28,14 @@ function handleWatchlist($file) {
     
         // Get the header row
         $headers = fgetcsv($handle);
+
+        // It's a custom list, read to the proper header
+        if (count($headers) == 1) {
+          $headers = fgetcsv($handle);
+          $headers = fgetcsv($handle);
+          $headers = fgetcsv($handle);
+          $headers = fgetcsv($handle);
+        }
     
         if ($headers === false) {
           http_response_code(400);
@@ -85,6 +93,14 @@ function handleZip($file) {
 function handleMovies($watchlistMovies) {
   if (count($watchlistMovies) === 0) {
     return null;
+  }
+
+  // If this is a list, map it accordingly
+  if (array_key_exists('URL', $watchlistMovies[0])) {
+    foreach ($watchlistMovies as &$movie) {
+      $movie['Letterboxd URI'] = $movie['URL'];
+      unset($movie['URL']);
+    }
   }
 
   $letterboxdUrls = [];
