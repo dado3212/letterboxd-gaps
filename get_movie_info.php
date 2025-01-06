@@ -21,6 +21,7 @@ if ($output[0] == 'more' || $output[0] == 'finished') {
 // $info = getInfo('https://boxd.it/2o4Y', 'The Vow', '2012'); // different format of photo
 // $info = getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020'); // tv show
 // $info = getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020'); // no picture
+// $info = getInfo('https://boxd.it/AP3G', 'Emilia Pérez', '2024'); // accent
 // echo '<img src="' . $info['poster'] . '">';
 // var_export($info);
 

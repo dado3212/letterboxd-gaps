@@ -97,9 +97,9 @@ function handleMovies($watchlistMovies) {
 
   // If this is a list, map it accordingly
   if (array_key_exists('URL', $watchlistMovies[0])) {
-    foreach ($watchlistMovies as &$movie) {
-      $movie['Letterboxd URI'] = $movie['URL'];
-      unset($movie['URL']);
+    foreach ($watchlistMovies as $key => $movie) {
+      $watchlistMovies[$key]['Letterboxd URI'] = $movie['URL'];
+      unset($watchlistMovies[$key]['URL']);
     }
   }
 
