@@ -22,12 +22,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     echo 'No file uploaded.';
 }
 
+function getFileHeaders($handle) {
+  $headers = fgetcsv($handle);
+
+  if ($headers === false) {
+    return null;
+  }
+
+  // We only handle
+  // watchlist, watched, diary, and lists
+
+  // watchlist, watched
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Name',
+  //   2 => 'Year',
+  //   3 => 'Letterboxd URI',
+  // )
+
+  // reviews
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Name',
+  //   2 => 'Year',
+  //   3 => 'Letterboxd URI', (review URL)
+  //   4 => 'Rating',
+  //   5 => 'Rewatch',
+  //   6 => 'Review',
+  //   7 => 'Tags',
+  //   8 => 'Watched Date',
+  // )
+
+  // ratings
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Name',
+  //   2 => 'Year',
+  //   3 => 'Letterboxd URI',
+  //   4 => 'Rating',
+  // )
+
+  // profile
+  // array (
+  //   0 => 'Date Joined',
+  //   1 => 'Username',
+  //   2 => 'Given Name',
+  //   3 => 'Family Name',
+  //   4 => 'Email Address',
+  //   5 => 'Location',
+  //   6 => 'Website',
+  //   7 => 'Bio',
+  //   8 => 'Pronoun',
+  //   9 => 'Favorite Films',
+  // )
+
+  // comments
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Content',
+  //   2 => 'Comment',
+  // )
+
+  // diary
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Name',
+  //   2 => 'Year',
+  //   3 => 'Letterboxd URI', (review URL)
+  //   4 => 'Rating',
+  //   5 => 'Rewatch',
+  //   6 => 'Tags',
+  //   7 => 'Watched Date',
+  // )
+
+  // likes/films
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Name',
+  //   2 => 'Year',
+  //   3 => 'Letterboxd URI',
+  // )
+
+  // likes/lists
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Content', (list URL)
+  // )
+
+  // likes/reviews
+  // array (
+  //   0 => 'Date',
+  //   1 => 'Content', (review URL)
+  // )
+
+  // lists export
+  // array (
+  //   0 => 'Letterboxd list export v7',
+  // )
+
+  var_export($headers);
+
+  // 
+  return null;
+}
+
 function handleWatchlist($file) {
     if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
         $data = []; // Array to store the CSV data as a dictionary
     
         // Get the header row
-        $headers = fgetcsv($handle);
+        $headers = getFileHeaders($handle);
+        if ($headers === null) {
+          http_response_code(400);
+          echo 'The CSV file is empty or invalid.';
+          fclose($handle);
+          exit;
+        }
 
         // It's a custom list, read to the proper header
         if (count($headers) == 1) {
@@ -36,13 +146,8 @@ function handleWatchlist($file) {
           $headers = fgetcsv($handle);
           $headers = fgetcsv($handle);
         }
-    
-        if ($headers === false) {
-          http_response_code(400);
-          echo 'The CSV file is empty or invalid.';
-          fclose($handle);
-          exit;
-        }
+
+        var_export($headers);
     
         // Process each row of the CSV
         while (($row = fgetcsv($handle)) !== false) {
@@ -50,6 +155,8 @@ function handleWatchlist($file) {
         }
     
         fclose($handle);
+
+        $data = [];
 
         // Example: Return JSON response
         header('Content-Type: application/json');

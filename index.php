@@ -494,7 +494,7 @@
 
                     let centerX, centerY, radiusScale;
                     const width = window.innerWidth;
-                    const height = window.innerHeight - 81.5;
+                    const height = window.innerHeight - 120.5; // nav height
                     const ratio = 138/92;
 
                     let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
