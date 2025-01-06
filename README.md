@@ -1,6 +1,11 @@
 # letterboxd-stats
 PHP website for calculating some Letterboxd stats
 
+<img width="1501" alt="Screenshot 2025-01-04 at 5 00 18 PM" src="https://github.com/user-attachments/assets/57721a07-aada-42fd-b517-9cb962c24883" />
+
+<img width="1311" alt="Screenshot 2025-01-05 at 10 05 21 PM" src="https://github.com/user-attachments/assets/37f4609b-8e40-4d48-bbcc-73a8e3d0a23c" />
+
+Still very much WIP.
 
 TODO:
 - Put in username or drag-drop files (full .zip? watchlist? other?)
