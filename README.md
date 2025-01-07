@@ -20,11 +20,18 @@ Show
 
 SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDemoGDP, https://github.com/StephanWagner/svgMap?tab=readme-ov-file, https://www.cssscript.com/demo/interactive-svg-world-map/
 
-Misc
-- Make the drag/drop also selectable
+- Max image width for shorter lists
 - TMDB attribution in the UI
 - Letterboxd attribution in the UI
-- The Remains of the Day	1993	2048	1245	tt0107943	https://boxd.it/291A	0	en	/uDGDtqSvuch324WnM7Ukdp1bCAQ.jpg	["US", ""]	pending
+- Make the drag/drop also selectable
+- Show some actual text of how to use the website
+- Hover to see movies
+- Zip support
+- Inlcude MySQL databases in this repo
+
+Stretch
+- Better animation for gender splits where the posters rearrange
+
 
 **secret.php**
 ```

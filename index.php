@@ -320,7 +320,7 @@
             </div>
             <div class="menu">
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
-                <button class="gender" onclick="femaleDirectors()">♀ Female Directors</button>
+                <button class="gender" onclick="femaleDirectors()">Female Directors</button>
                 <button class="countries">Countries</button>
             </div>
         </div>
@@ -409,13 +409,25 @@
                 });
             }
 
+            let showingFemaleDirectors = false;
             function femaleDirectors() {
-                document.querySelectorAll('.movie:not(.female)').forEach(poster => {
-                    poster.style.opacity = 0.2;
-                });
-                const numFilter = document.querySelector('#numMovies .filter');
-                numFilter.innerHTML = `${document.querySelectorAll('.movie.female').length} out of `;
-                numFilter.style.display = 'initial';
+                if (!showingFemaleDirectors) {
+                    // Highlight them
+                    document.querySelectorAll('.movie:not(.female)').forEach(poster => {
+                        poster.style.opacity = 0.2;
+                    });
+                    const numFilter = document.querySelector('#numMovies .filter');
+                    numFilter.innerHTML = `${document.querySelectorAll('.movie.female').length} out of `;
+                    numFilter.style.display = 'initial';
+                } else {
+                    // Remove highlighting
+                    document.querySelectorAll('.movie:not(.female)').forEach(poster => {
+                        poster.style.opacity = 1.0;
+                    });
+                    const numFilter = document.querySelector('#numMovies .filter');
+                    numFilter.style.display = 'none';
+                }
+                showingFemaleDirectors = !showingFemaleDirectors;
             }
 
             function transitionToAnalysis() {
@@ -448,6 +460,11 @@
 
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
+
+                // Make sure that we hide the gender breakdown
+                const numFilter = document.querySelector('#numMovies .filter');
+                numFilter.style.display = 'none';
+                showingFemaleDirectors = false;
 
                 transitionToAnalysis();
 
