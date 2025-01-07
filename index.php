@@ -354,7 +354,7 @@
             });
 
             // Don't drag the images
-            document.querySelectorAll('.center img').forEach(img => {
+            document.querySelectorAll('img').forEach(img => {
                 img.ondragstart = function() { return false; };
             });
 
@@ -572,6 +572,11 @@
                             }
                         }
                         container.appendChild(movieDiv);
+                    });
+
+                    // And make it so the new images can't be dragged
+                    document.querySelectorAll('img').forEach(img => {
+                        img.ondragstart = function() { return false; };
                     });
 
                     // fetch('scrape_countries.php', {

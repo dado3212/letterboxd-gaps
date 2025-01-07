@@ -129,6 +129,12 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     return ['movies' => [], 'upload_id' => null, 'upload_count' => 0];
   }
 
+  $color_sorting = function ($a, $b) {
+    $a_color = (float) json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'];
+    $b_color = (float) json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+    return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
+  };
+
   // We have the link to the review, not to the movie. Don't try and process
   // these and upload them, because it's expensive to scrape. We'll do best
   // effort based on the name + year combination. For the most part this should
@@ -141,6 +147,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       $params[] =  $movie['Year'];
     }
     // Check if the URL has been uploaded to the database already
+    // TODO: this query is SUPER slow. Index it.
     $PDO = getDatabase();
     $placeholders = implode(' OR ', array_fill(0, count($watchlistMovies), '(movie_name = ? AND year = ?)'));
     $stmt = $PDO->prepare("SELECT * FROM movies WHERE $placeholders");
@@ -171,9 +178,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       }
     }
 
-    usort($movies, function ($a, $b) {
-      return (float) json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float) json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
-    });
+    usort($movies, $color_sorting);
 
     return ['movies' => $movies, 'upload_id' => null, 'upload_count' => 0];
   }
@@ -271,9 +276,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     $upload_id = $PDO->lastInsertId();
   }
 
-  usort($movies, function ($a, $b) {
-    return (float) json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'] <=> (float) json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
-  });
+  usort($movies, $color_sorting);
 
   return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids)];
 }
