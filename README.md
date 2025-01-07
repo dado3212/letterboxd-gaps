@@ -23,9 +23,8 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Max image width for shorter lists
 - TMDB attribution in the UI
 - Letterboxd attribution in the UI
-- Make the drag/drop also selectable
+- Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
-- Hover to see movies
 - Zip support
 - Inlcude MySQL databases in this repo
 
@@ -126,3 +125,8 @@ document.querySelectorAll('.center img').forEach(img => {
   total.push({id: parseInt(img.getAttribute('data-tmdb')), width: img.width, left: parseInt(img.style.left.slice(0, -2)), top: parseInt(img.style.top.slice(0, -2))});
 });
 ```
+
+## Thanks to
+- Letterboxd
+- TMDb
+- Tippy - https://atomiks.github.io/tippyjs/

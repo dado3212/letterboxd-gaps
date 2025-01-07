@@ -216,6 +216,32 @@
                     display: block;
                 }
             }
+            .tippy-content img {
+                max-width: 150px;
+            }
+            .tippy-content b {
+                text-align: center;
+                display: inline-block;
+                width: 100%;
+                font-size: 1.25em;
+                margin-bottom: 6px;
+                font-weight: normal;
+            }
+            #movies .movie {
+                cursor: pointer;
+                position: relative;
+            }
+            #movies .movie:hover::after {
+                content: "";
+                cursor: pointer;
+                width: calc(100% - 6px);
+                height: calc(100% - 6px);
+                display: inline-block;
+                border: 3px solid #00ac1c;
+                position: absolute;
+                left: 0px;
+                top: 0px;
+            }
         </style>
     </head>
     <body>
@@ -345,6 +371,8 @@
         <div id="movies">
         </div>
 
+        <script src="https://unpkg.com/@popperjs/core@2"></script>
+        <script src="https://unpkg.com/tippy.js@6"></script>
         <script>
             const listening = true;
             const dropArea = document.querySelector('html');
@@ -449,8 +477,8 @@
                     setTimeout(() => {
                         document.querySelector('.center-wrapper').style.display = 'none';
                         document.querySelector('.nav').style.display = 'initial';
-                    }, 2000);
-                }, 2000); // takes 2s for the images to fade
+                    }, 0);
+                }, 0); // takes 2s for the images to fade
             }
 
             // File upload
@@ -550,6 +578,9 @@
                     movies.forEach(movie => {
                         const movieDiv = document.createElement('div');
                         movieDiv.className = 'movie';
+                        movieDiv.onclick = () => {
+                            window.open(movie.letterboxd_url, '_blank');
+                        };
                         if (movie.poster) {
                             if (movie.poster.startsWith('/')) {
                                 movieDiv.innerHTML = `
@@ -589,6 +620,15 @@
                             }
                         }
                         container.appendChild(movieDiv);
+                        // Add in the tooltip
+                        tippy(movieDiv, {
+                            animation: 'scale',
+                            content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
+                            allowHTML: true,
+                            followCursor: true,
+                            duration: 0,
+                            maxWidth: 170, // image width + 20 for borders
+                        });
                     });
 
                     // And make it so the new images can't be dragged
