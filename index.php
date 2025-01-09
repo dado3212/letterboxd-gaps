@@ -231,7 +231,7 @@
                 cursor: pointer;
                 position: relative;
             }
-            #movies .movie:hover::after {
+            #movies .movie::after {
                 content: "";
                 cursor: pointer;
                 width: calc(100% - 6px);
@@ -241,6 +241,11 @@
                 position: absolute;
                 left: 0px;
                 top: 0px;
+                opacity: 0;
+                transition: 0.3s ease;
+            }
+            #movies .movie:hover::after {
+                opacity: 1;
             }
         </style>
     </head>
@@ -620,15 +625,17 @@
                             }
                         }
                         container.appendChild(movieDiv);
-                        // Add in the tooltip
-                        tippy(movieDiv, {
-                            animation: 'scale',
-                            content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
-                            allowHTML: true,
-                            followCursor: true,
-                            duration: 0,
-                            maxWidth: 170, // image width + 20 for borders
-                        });
+                        // Add in the tooltip if the image is too small
+                        if (imageWidth < 70) {
+                            tippy(movieDiv, {
+                                animation: 'scale',
+                                content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
+                                allowHTML: true,
+                                followCursor: true,
+                                duration: 0,
+                                maxWidth: 170, // image width + 20 for borders
+                            });
+                        }
                     });
 
                     // And make it so the new images can't be dragged
