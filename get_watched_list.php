@@ -162,6 +162,9 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
     $movies = [];
     foreach ($watchlistMovies as $movie) {
+      if (substr($movie['Watched Date'], 0, 5) !== '2025-') {
+        continue;
+      }
       $key = $movie['Name'] . '-' . $movie['Year'];
       if (array_key_exists($key, $serverMovieInfo)) {
         $movieInfo = $serverMovieInfo[$key];

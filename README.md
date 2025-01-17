@@ -20,10 +20,9 @@ Show
 
 SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDemoGDP, https://github.com/StephanWagner/svgMap?tab=readme-ov-file, https://www.cssscript.com/demo/interactive-svg-world-map/
 
-- Max image width for shorter lists
-- Handle colors as part of uploading
+- Handle .zip drop
+- Diary sort by year
 - Actually show upload progress
-- Update UI after upload finishes
 - Time estimates for uploading
 - TMDB attribution in the UI
 - Letterboxd attribution in the UI

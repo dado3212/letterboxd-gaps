@@ -349,8 +349,13 @@
             <div class="title">
                 <div class="header">
                     <div class="normal">Letterboxd</div>
+                    <div class="progress">
+                        <div class="wrapper">
+                            <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="subtext" onclick="transitionToAnalysis()">GAPS</div>
+                <div class="subtext">GAPS</div>
             </div>
             <div class="menu">
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
@@ -494,6 +499,9 @@
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
+
+                // Clear tippy
+                const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
                 
                 fetch('get_watched_list.php', {
                     method: 'POST',
@@ -542,6 +550,7 @@
                     const ratio = 138/92;
 
                     let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
+                    imageWidth = Math.min(imageWidth, 200);
                     imageWidth = imageWidth - 4;
                     const imageHeight = imageWidth * ratio;
 
