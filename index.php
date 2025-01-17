@@ -437,6 +437,7 @@
                     if (JSON.parse(rawData)['status'] != 'finished') {
                         pingHome();
                     } else {
+                        // Include all of the images and pictures, and rearrange them
                         console.log('finished');
                     }
                 });
@@ -581,25 +582,42 @@
                     }
 
                     movies.forEach(movie => {
+                        const movieName = `${movie.movie_name} (${movie.year})`;
                         const movieDiv = document.createElement('div');
                         movieDiv.className = 'movie';
                         movieDiv.onclick = () => {
                             window.open(movie.letterboxd_url, '_blank');
                         };
-                        if (movie.poster) {
+                        if (false) { // movie.poster) {
                             if (movie.poster.startsWith('/')) {
                                 movieDiv.innerHTML = `
-                                    <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movie.movie_name} (${movie.year})">
+                                    <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movieName}">
                                 `;
                             } else {
                                 movieDiv.innerHTML = `
-                                    <img src="${movie.poster}" alt="${movie.movie_name} (${movie.year})">
+                                    <img src="${movie.poster}" alt="${movieName}">
                                 `;
                             }
                         } else {
                             movieDiv.className += ' missing';
                             movieDiv.innerHTML = `
-                                <span>${movie.movie_name} (${movie.year})</span>
+                                <svg
+                                    width="156%"
+                                    height="20%"
+                                    viewBox="0 0 500 75"
+                                    preserveAspectRatio="xMinYMin" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    style="transform-origin: 0 0; transform: rotate(56.3deg); margin: -3% 0 0 24%;"
+                                >
+                                    <text
+                                    x="0"
+                                    y="75"
+                                    font-size="${10.3 * imageWidth / movieName.length}"
+                                    fill="white"
+                                    style=""
+                                    >${movieName}</text>
+                                </svg>
                             `;
                         }
                         if (movie.tmdb_id) {
