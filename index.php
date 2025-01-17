@@ -192,15 +192,18 @@
 
                     &.missing {
                         border: 1px solid;
-                    }
 
-                    span {
-                        font-size: 0.4em;
-                        display: block;
-                        white-space: nowrap;
-                        transform-origin: 0;
-                        transform: rotate(61deg);
-                        margin: -1px 0 0 4px;
+                        div {
+                            transform-origin: left center;
+                            transform: rotate(57.3deg);
+                            margin: -0.6em 0 0 0.1em;
+                            width: 180%;
+                            text-align: center;
+
+                            span {
+                                white-space: nowrap;
+                            }
+                        }
                     }
 
                     img {
@@ -428,17 +431,18 @@
                 }
             });
 
-            function pingHome() {
+            function pingHome(cb) {
                 fetch('get_movie_info.php', {
                     method: 'GET',
                 })
                 .then(response => response.text())
                 .then(rawData => {
                     if (JSON.parse(rawData)['status'] != 'finished') {
-                        pingHome();
+                        pingHome(cb);
                     } else {
                         // Include all of the images and pictures, and rearrange them
                         console.log('finished');
+                        cb();
                     }
                 });
             }
@@ -487,21 +491,10 @@
                 }, 0); // takes 2s for the images to fade
             }
 
-            // File upload
-            function uploadFile(file) {
-                const formData = new FormData();
-                formData.append('file', file);
-
+            function tryToUpload(formData) {
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
-
-                // Make sure that we hide the gender breakdown
-                const numFilter = document.querySelector('#numMovies .filter');
-                numFilter.style.display = 'none';
-                showingFemaleDirectors = false;
-
-                transitionToAnalysis();
-
+                
                 fetch('get_watched_list.php', {
                     method: 'POST',
                     body: formData
@@ -563,7 +556,9 @@
 
                     if (data.upload_count > 0) {
                         // Start the process
-                        pingHome();
+                        pingHome(() => {
+                            tryToUpload(formData);
+                        });
                         // 25% to 81%
                         const progressBar = document.querySelector('.progress');
                         progressBar.style.height = '25%';
@@ -588,7 +583,7 @@
                         movieDiv.onclick = () => {
                             window.open(movie.letterboxd_url, '_blank');
                         };
-                        if (false) { // movie.poster) {
+                        if (movie.poster) {
                             if (movie.poster.startsWith('/')) {
                                 movieDiv.innerHTML = `
                                     <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movieName}">
@@ -601,23 +596,9 @@
                         } else {
                             movieDiv.className += ' missing';
                             movieDiv.innerHTML = `
-                                <svg
-                                    width="156%"
-                                    height="20%"
-                                    viewBox="0 0 500 75"
-                                    preserveAspectRatio="xMinYMin" 
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                                    style="transform-origin: 0 0; transform: rotate(56.3deg); margin: -3% 0 0 24%;"
-                                >
-                                    <text
-                                    x="0"
-                                    y="75"
-                                    font-size="${10.3 * imageWidth / movieName.length}"
-                                    fill="white"
-                                    style=""
-                                    >${movieName}</text>
-                                </svg>
+                                <div style="font-size: ${3 * imageWidth / movieName.length}px">
+                                    <span>${movieName}</span>
+                                </div>
                             `;
                         }
                         if (movie.tmdb_id) {
@@ -701,6 +682,21 @@
                 .catch(error => {
                     console.error('Error:', error);
                 });
+            }
+
+            // File upload
+            function uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Make sure that we hide the gender breakdown
+                const numFilter = document.querySelector('#numMovies .filter');
+                numFilter.style.display = 'none';
+                showingFemaleDirectors = false;
+
+                transitionToAnalysis();
+
+                tryToUpload(formData);
             }
         </script>
     </body>

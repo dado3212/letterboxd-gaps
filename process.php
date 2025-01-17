@@ -5,6 +5,66 @@ require_once("secret.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+function getDominantColor($imagePath) {
+  $image = imagecreatefromjpeg($imagePath);
+  $width = imagesx($image);
+  $height = imagesy($image);
+
+  $rTotal = $gTotal = $bTotal = $pixelCount = 0;
+
+  for ($x = 0; $x < $width; $x++) {
+    for ($y = 0; $y < $height; $y++) {
+      $rgb = imagecolorat($image, $x, $y);
+      $r = ($rgb >> 16) & 0xFF;
+      $g = ($rgb >> 8) & 0xFF;
+      $b = $rgb & 0xFF;
+
+      $rTotal += $r;
+      $gTotal += $g;
+      $bTotal += $b;
+      $pixelCount++;
+    }
+  }
+
+  imagedestroy($image);
+
+  return [
+    'r' => round($rTotal / $pixelCount),
+    'g' => round($gTotal / $pixelCount),
+    'b' => round($bTotal / $pixelCount)
+  ];
+}
+
+function rgbToHsl($r, $g, $b) {
+  $r /= 255;
+  $g /= 255;
+  $b /= 255;
+
+  $max = max($r, $g, $b);
+  $min = min($r, $g, $b);
+  $delta = $max - $min;
+
+  $h = 0;
+  if ($delta > 0) {
+    if ($max === $r) {
+      $h = 60 * fmod((($g - $b) / $delta), 6);
+    } elseif ($max === $g) {
+      $h = 60 * (($b - $r) / $delta + 2);
+    } else {
+      $h = 60 * (($r - $g) / $delta + 4);
+    }
+  }
+
+  $l = ($max + $min) / 2;
+  $s = $delta == 0 ? 0 : $delta / (1 - abs(2 * $l - 1));
+
+  return [
+    'h' => ($h < 0 ? $h + 360 : $h),
+    's' => $s,
+    'l' => $l
+  ];
+}
+
 // Get up to 50 that aren't being worked on right now
 $PDO = getDatabase();
 $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status = 'pending' LIMIT 50";
@@ -31,6 +91,12 @@ foreach ($movies as $movie) {
     fclose($pipe[0]); // Close parent pipe in the child process
     $result = getInfo($movie['letterboxd_url'], $movie['movie_name'], $movie['year']);
     $result['id'] = $movie['id'];
+
+    $poster = $result['poster'];
+    $rgb = getDominantColor($poster);
+    $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+    $result['primary_color'] = json_encode($hsl);
+
     fwrite($pipe[1], json_encode($result)); // Send result to the parent
     fclose($pipe[1]);
     exit; // Exit child process
@@ -63,6 +129,7 @@ foreach ($results as $movie) {
     'imdb_id' => $movie['imdb_id'],
     'countries' => json_encode(array_values($movie['production_countries'])),
     'has_female_director' => $movie['has_female_director'] ? 1 : 0,
+    'primary_color' => $movie['primary_color'],
   ];
   $ids[] = $movie['id'];
 }
@@ -89,8 +156,11 @@ $sql = "
     END,
     has_female_director = CASE id
       " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_6 THEN :has_female_director_{$u['id']}", $updates)) . "
+    END,
+    primary_color = CASE id
+      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_7 THEN :primary_color_{$u['id']}", $updates)) . "
     END
-  WHERE id IN (" . implode(', ', array_map(fn($id) => ":id_{$id}_7", $ids)) . ")
+  WHERE id IN (" . implode(', ', array_map(fn($id) => ":id_{$id}_8", $ids)) . ")
 ";
 
 $PDO = getDatabase();
@@ -104,8 +174,9 @@ foreach ($updates as $u) {
   $stmt->bindValue(":imdb_id_{$u['id']}", $u['imdb_id'], PDO::PARAM_STR);
   $stmt->bindValue(":countries_{$u['id']}", $u['countries'], PDO::PARAM_STR);
   $stmt->bindValue(":has_female_director_{$u['id']}", $u['has_female_director'], PDO::PARAM_INT);
+  $stmt->bindValue(":primary_color_{$u['id']}", $u['primary_color'], PDO::PARAM_STR);
 }
-for ($i = 1; $i <= 7; $i++) {
+for ($i = 1; $i <= 8; $i++) {
   foreach ($ids as $id) {
     $stmt->bindValue(":id_{$id}_{$i}", $id, PDO::PARAM_INT);
   }
