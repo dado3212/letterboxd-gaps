@@ -74,10 +74,13 @@ function processCsvContent($content, $type = null, $listName = null) {
     } else if ($headers === ['Letterboxd list export v7']) {
       $type = 'list';
       $listName = $lines[1][1] ?? null;
-      array_shift($lines); // Skip the list name row
-      array_shift($lines);
-      array_shift($lines);
-      $headers = array_shift($lines); // Update headers
+      // Iterate until you hit the real data
+      while ($current = array_shift($lines)) {
+        if (count($current) === 5 && $current[0] === 'Position') {
+          $headers = $current;
+          break;
+        }
+      }
     } else {
       return null; // Unsupported format
     }
@@ -131,6 +134,7 @@ function handleZip($file) {
     $zip->close();
 
     // Process the extracted files in memory
+    $all_data = [];
     foreach ($files as $file) {
       /*
         Handle
@@ -139,17 +143,15 @@ function handleZip($file) {
         watchlist.csv
         lists/<whatever>
       */
-      // str_starts_with($file['name'], 'lists/') || 
-      if (in_array($file['name'], ['watched.csv', 'diary.csv', 'watchlist.csv'])) {
-        echo $file['name'] . "\n";
+      if (str_starts_with($file['name'], 'lists/') || in_array($file['name'], ['watched.csv', 'diary.csv', 'watchlist.csv'])) {
         $content = parseCsv($file['content']);
-        var_export($content);
         $result = processCsvContent($content);
-        var_export($result);
+        $all_data[] = $result;
       }
-      // Example: Output first 100 characters of file content
-      // echo "Content (truncated): " . substr($file['content'], 0, 100) . "\n\n";
     }
+    header('Content-Type: application/json');
+    echo json_encode($all_data);
+    return true;
   } else {
     http_response_code(500);
     echo 'Failed to open .zip file.';
@@ -195,9 +197,6 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
     $movies = [];
     foreach ($watchlistMovies as $movie) {
-      if (substr($movie['Watched Date'], 0, 5) !== '2025-') {
-        continue;
-      }
       $key = $movie['Name'] . '-' . $movie['Year'];
       if (array_key_exists($key, $serverMovieInfo)) {
         $movieInfo = $serverMovieInfo[$key];
@@ -314,5 +313,5 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
   usort($movies, $color_sorting);
 
-  return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids)];
+  return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids), 'name' => $list_name ?? $type];
 }

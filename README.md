@@ -20,6 +20,7 @@ Show
 
 SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDemoGDP, https://github.com/StephanWagner/svgMap?tab=readme-ov-file, https://www.cssscript.com/demo/interactive-svg-world-map/
 
+- Loading bar for .zip drop too
 - Handle .zip drop
 - Diary sort by year
 - Actually show upload progress

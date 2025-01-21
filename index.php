@@ -358,6 +358,8 @@
                 <div class="subtext">GAPS</div>
             </div>
             <div class="menu">
+                <select name="list" id="list-select">
+                </select>
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
                 <button class="countries">Countries</button>
@@ -502,6 +504,11 @@
 
                 // Clear tippy
                 const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
+
+                // Set up the list selection (hide it by default until we know how many we're dealing with)
+                const listSelect = document.getElementById('list-select');
+                listSelect.innerHTML = '';
+                listSelect.style.display = 'none';
                 
                 fetch('get_watched_list.php', {
                     method: 'POST',
@@ -509,7 +516,16 @@
                 })
                 .then(response => response.text())
                 .then(rawData => {
-                    const data = JSON.parse(rawData);
+                    let data = JSON.parse(rawData);
+                    // This is a .zip with multiple movies
+                    if (Array.isArray(data)) {
+                        listSelect.style.display = 'block';
+                        for (const movie of data) {
+                            listSelect.innerHTML += `<option>${movie['name']} - ${movie['movies'].length}</option>`;
+                        }
+                        data = data[0];
+                    }
+                    console.log(data);
                     movies = data.movies;
 
                     let numTotal = 0;
