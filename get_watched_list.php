@@ -27,69 +27,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   echo 'No file uploaded.';
 }
 
-function handleWatchlist($file) {
-  if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
-    $data = []; // Array to store the CSV data as a dictionary
+function parseCsv($source, $isStream = false) {
+  $lines = [];
 
-    $headers = fgetcsv($handle);
-
-    if ($headers === false) {
-      return null;
+  if ($isStream) {
+    // Source is a stream (e.g., from fopen)
+    while (($line = fgetcsv($source)) !== false) {
+      $lines[] = $line;
     }
+  } else {
+    // Source is a string
+    $lines = array_map('str_getcsv', explode("\n", $source));
+  }
 
-    $type = null; // watchlist, diary, reviews, list
-    $list_name = null;
-    // Watchlist, watched, and likes/films
+  // Separate headers and rows
+  $headers = array_shift($lines);
+
+  if ($headers === false) {
+    return [null, null]; // Malformed CSV
+  }
+
+  return [$headers, $lines];
+}
+
+function processCsvContent($content, $type = null, $listName = null) {
+  [$headers, $lines] = $content;
+
+  if ($headers === null) {
+    return null; // Malformed CSV
+  }
+
+  if ($type === null) {
+    // Determine type based on headers
     if ($headers === ['Date', 'Name', 'Year', 'Letterboxd URI']) {
       $type = 'watchlist';
     } else if ($headers === [
-      'Date',
-      'Name',
-      'Year',
-      'Letterboxd URI', // review URI, so we don't want this
-      'Rating',
-      'Rewatch',
-      'Tags',
-      'Watched Date'
+      // Letterboxd URI is the review URI, so not useful
+      'Date', 'Name', 'Year', 'Letterboxd URI', 'Rating', 'Rewatch', 'Tags', 'Watched Date'
     ]) {
       $type = 'diary';
     } else if ($headers === [
-      'Date',
-      'Name',
-      'Year',
-      'Letterboxd URI', // review URI, so we don't want this
-      'Rating',
-      'Rewatch',
-      'Review',
-      'Tags',
-      'Watched Date'
+      // Letterboxd URI is the review URI, so not useful
+      'Date', 'Name', 'Year', 'Letterboxd URI', 'Rating', 'Rewatch', 'Review', 'Tags', 'Watched Date'
     ]) {
       $type = 'reviews';
     } else if ($headers === ['Letterboxd list export v7']) {
       $type = 'list';
-      fgetcsv($handle);
-      $list_name = fgetcsv($handle)[1]; // Get the list name
-      fgetcsv($handle);
-      $headers = fgetcsv($handle);
+      $listName = $lines[1][1] ?? null;
+      array_shift($lines); // Skip the list name row
+      array_shift($lines);
+      array_shift($lines);
+      $headers = array_shift($lines); // Update headers
     } else {
-      // Malformed
-      return null;
+      return null; // Unsupported format
     }
+  }
 
-    // Process each row of the CSV
-    while (($row = fgetcsv($handle)) !== false) {
-      $data[] = array_combine($headers, $row);
-    }
+  // Convert rows into associative arrays
+  $data = array_map(
+    fn($line) => count($line) === count($headers) ? array_combine($headers, $line) : null,
+    $lines
+  );
+  $data = array_filter($data);
 
+  // Pass processed data to handler
+  return handleMovies($data, $type, $listName);
+}
+
+function handleWatchlist($file) {
+  if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
+    [$headers, $lines] = parseCsv($handle, true);
     fclose($handle);
 
-    // Example: Return JSON response
+    if ($headers === null) {
+      return null; // Malformed CSV
+    }
+
+    // Delegate to processCsvContent for type detection and processing
     header('Content-Type: application/json');
-    echo json_encode(handleMovies($data, $type, $list_name));
+    echo json_encode(processCsvContent([$headers, $lines]));
     return true;
-  } else {
-    return null;
   }
+
+  return null;
 }
 
 function handleZip($file) {
@@ -112,9 +132,23 @@ function handleZip($file) {
 
     // Process the extracted files in memory
     foreach ($files as $file) {
-      echo "File: " . $file['name'] . "\n";
+      /*
+        Handle
+        watched.csv 
+        diary.csv
+        watchlist.csv
+        lists/<whatever>
+      */
+      // str_starts_with($file['name'], 'lists/') || 
+      if (in_array($file['name'], ['watched.csv', 'diary.csv', 'watchlist.csv'])) {
+        echo $file['name'] . "\n";
+        $content = parseCsv($file['content']);
+        var_export($content);
+        $result = processCsvContent($content);
+        var_export($result);
+      }
       // Example: Output first 100 characters of file content
-      echo "Content (truncated): " . substr($file['content'], 0, 100) . "\n\n";
+      // echo "Content (truncated): " . substr($file['content'], 0, 100) . "\n\n";
     }
   } else {
     http_response_code(500);
@@ -130,8 +164,8 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
   }
 
   $color_sorting = function ($a, $b) {
-    $a_color = (float) json_decode($a['primary_color'] ?? "{'h': 0}", true)['h'];
-    $b_color = (float) json_decode($b['primary_color'] ?? "{'h': 0}", true)['h'];
+    $a_color = (float) json_decode($a['primary_color'] ?? '{"h": 0}', true)['h'];
+    $b_color = (float) json_decode($b['primary_color'] ?? '{"h": 0}', true)['h'];
     return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
   };
 
@@ -147,7 +181,6 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       $params[] =  $movie['Year'];
     }
     // Check if the URL has been uploaded to the database already
-    // TODO: this query is SUPER slow. Index it.
     $PDO = getDatabase();
     $placeholders = implode(' OR ', array_fill(0, count($watchlistMovies), '(movie_name = ? AND year = ?)'));
     $stmt = $PDO->prepare("SELECT * FROM movies WHERE $placeholders");
