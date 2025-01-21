@@ -498,6 +498,197 @@
                 }, 0); // takes 2s for the images to fade
             }
 
+            function swapList(data) {
+                movies = data.movies;
+
+                const container = document.getElementById('movies');
+                container.innerHTML = '';
+
+                // Clear tippy
+                const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
+
+                let numTotal = 0;
+                let numWomen = 0;
+                let countries = {};
+                let languages = {};
+
+                document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString('en-US');
+
+                function calculateBestFit(w, h, n, ratio) {
+                    let bestWidth = 0;
+                    let bestColumns = 0;
+                    let bestRows = 0;
+
+                    for (let c = 1; c <= n; c++) {
+                        let r = Math.ceil(n / c); // Calculate rows for current column count
+                        const x = Math.min(w / (c * 1), h / (r * ratio)); // Calculate the scale-independent width x
+                        const y = x * ratio; // Corresponding height
+                        if (c * x <= w && r * y <= h) { // Check if the configuration fits
+                            if (x > bestWidth) { // Update if this scale is better
+                                bestWidth = x;
+                                bestColumns = c;
+                                bestRows = r;
+                            }
+                        }
+                    }
+
+                    return {
+                        imageWidth: bestWidth,
+                        numRows: bestRows,
+                        numCols: bestColumns,
+                    };
+                }
+
+                let centerX, centerY, radiusScale;
+                const width = window.innerWidth;
+                const height = window.innerHeight - 120.5; // nav height
+                const ratio = 138/92;
+
+                let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
+                imageWidth = Math.min(imageWidth, 200);
+                imageWidth = imageWidth - 4;
+                const imageHeight = imageWidth * ratio;
+
+                var styleSheet = document.createElement("style");
+                styleSheet.textContent = `
+                #movies .movie {
+                    width: ${imageWidth}px;
+                    height: ${imageHeight}px;
+                }
+                `;
+                document.head.appendChild(styleSheet);
+
+                if (data.upload_count > 0) {
+                    // Start the process
+                    pingHome(() => {
+                        tryToUpload(formData);
+                    });
+                    // 25% to 81%
+                    const progressBar = document.querySelector('.progress');
+                    progressBar.style.height = '25%';
+
+                    const interval = setInterval(() => {
+                        fetch('poll_status.php?id=' + data.upload_id)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
+                            if (data.done == data.total) {
+                                clearTimeout(interval);
+                            }
+                        });
+                    }, 2000);
+                }
+
+                movies.forEach(movie => {
+                    const movieName = `${movie.movie_name} (${movie.year})`;
+                    const movieDiv = document.createElement('div');
+                    movieDiv.className = 'movie';
+                    movieDiv.onclick = () => {
+                        window.open(movie.letterboxd_url, '_blank');
+                    };
+                    if (movie.poster) {
+                        if (movie.poster.startsWith('/')) {
+                            movieDiv.innerHTML = `
+                                <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movieName}">
+                            `;
+                        } else {
+                            movieDiv.innerHTML = `
+                                <img src="${movie.poster}" alt="${movieName}">
+                            `;
+                        }
+                    } else {
+                        movieDiv.className += ' missing';
+                        movieDiv.innerHTML = `
+                            <div style="font-size: ${3 * imageWidth / movieName.length}px">
+                                <span>${movieName}</span>
+                            </div>
+                        `;
+                    }
+                    if (movie.tmdb_id) {
+                        if (movie.has_female_director) {
+                            numWomen += 1;
+
+                            movieDiv.className += ' female';
+                        }
+                        numTotal += 1;
+                        if (movie.language) {
+                            if (!(movie.language in languages)) {
+                                languages[movie.language] = 0;
+                            }
+                            languages[movie.language] += 1;
+                        }
+                        if (movie.countries) {
+                            for (const country of movie.countries) {
+                                if (!(country in countries)) {
+                                    countries[country] = 0;
+                                }
+                                countries[country] += 1;
+                            }
+                        }
+                    }
+                    container.appendChild(movieDiv);
+                    // Add in the tooltip if the image is too small
+                    if (imageWidth < 70) {
+                        tippy(movieDiv, {
+                            animation: 'scale',
+                            content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
+                            allowHTML: true,
+                            followCursor: true,
+                            duration: 0,
+                            maxWidth: 170, // image width + 20 for borders
+                        });
+                    }
+                });
+
+                // And make it so the new images can't be dragged
+                document.querySelectorAll('img').forEach(img => {
+                    img.ondragstart = function() { return false; };
+                });
+
+                // fetch('scrape_countries.php', {
+                //     method: 'GET',
+                // })
+                // .then(response => response.text())
+                // .then(data => {
+                //     const countryLanguageInfo = JSON.parse(data);
+                //     console.log(countryLanguageInfo);
+
+                //     // Handle stats setup
+                //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
+                //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
+
+                //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
+
+                //     let countryHTML = '';
+                //     for (const country in countryLanguageInfo['countries']) {
+                //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
+                //         if (country in countries) {
+                //             countryHTML += '✅: ' + countries[country] + '</a>';
+                //         } else {
+                //             countryHTML += '❌ </a>';
+                //         }
+                //     }
+                //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
+
+                //     let languageHTML = '';
+                //     for (const language in countryLanguageInfo['languages']) {
+                //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
+                //         if (language in languages) {
+                //             languageHTML += '✅: ' + languages[language] + '</a>';
+                //         } else {
+                //             languageHTML += '❌ </a>';
+                //         }
+                //     }
+                //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
+                // });
+            }
+
+            let allData = [];
+            document.getElementById('list-select').addEventListener('change', function () {
+                swapList(allData[Number(this.value)]);
+            });
+
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
@@ -519,190 +710,17 @@
                     let data = JSON.parse(rawData);
                     // This is a .zip with multiple movies
                     if (Array.isArray(data)) {
+                        // Set up the list selector
                         listSelect.style.display = 'block';
-                        for (const movie of data) {
-                            listSelect.innerHTML += `<option>${movie['name']} - ${movie['movies'].length}</option>`;
+                        for (var i = 0; i < data.length; i++) {
+                            const movie = data[i];
+                            listSelect.innerHTML += `<option value="${i}">${movie['name']} - ${movie['movies'].length}</option>`;
                         }
-                        data = data[0];
+                        allData = data;
+                        swapList(data[0]);
+                    } else {
+                        swapList(data);
                     }
-                    console.log(data);
-                    movies = data.movies;
-
-                    let numTotal = 0;
-                    let numWomen = 0;
-                    let countries = {};
-                    let languages = {};
-
-                    document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString('en-US');
-
-                    function calculateBestFit(w, h, n, ratio) {
-                        let bestWidth = 0;
-                        let bestColumns = 0;
-                        let bestRows = 0;
-
-                        for (let c = 1; c <= n; c++) {
-                            let r = Math.ceil(n / c); // Calculate rows for current column count
-                            const x = Math.min(w / (c * 1), h / (r * ratio)); // Calculate the scale-independent width x
-                            const y = x * ratio; // Corresponding height
-                            if (c * x <= w && r * y <= h) { // Check if the configuration fits
-                                if (x > bestWidth) { // Update if this scale is better
-                                    bestWidth = x;
-                                    bestColumns = c;
-                                    bestRows = r;
-                                }
-                            }
-                        }
-
-                        return {
-                            imageWidth: bestWidth,
-                            numRows: bestRows,
-                            numCols: bestColumns,
-                        };
-                    }
-
-                    let centerX, centerY, radiusScale;
-                    const width = window.innerWidth;
-                    const height = window.innerHeight - 120.5; // nav height
-                    const ratio = 138/92;
-
-                    let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
-                    imageWidth = Math.min(imageWidth, 200);
-                    imageWidth = imageWidth - 4;
-                    const imageHeight = imageWidth * ratio;
-
-                    var styleSheet = document.createElement("style");
-                    styleSheet.textContent = `
-                    #movies .movie {
-                        width: ${imageWidth}px;
-                        height: ${imageHeight}px;
-                    }
-                    `;
-                    document.head.appendChild(styleSheet);
-
-                    if (data.upload_count > 0) {
-                        // Start the process
-                        pingHome(() => {
-                            tryToUpload(formData);
-                        });
-                        // 25% to 81%
-                        const progressBar = document.querySelector('.progress');
-                        progressBar.style.height = '25%';
-
-                        const interval = setInterval(() => {
-                            fetch('poll_status.php?id=' + data.upload_id)
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log(data);
-                                progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
-                                if (data.done == data.total) {
-                                    clearTimeout(interval);
-                                }
-                            });
-                        }, 2000);
-                    }
-
-                    movies.forEach(movie => {
-                        const movieName = `${movie.movie_name} (${movie.year})`;
-                        const movieDiv = document.createElement('div');
-                        movieDiv.className = 'movie';
-                        movieDiv.onclick = () => {
-                            window.open(movie.letterboxd_url, '_blank');
-                        };
-                        if (movie.poster) {
-                            if (movie.poster.startsWith('/')) {
-                                movieDiv.innerHTML = `
-                                    <img src="https://image.tmdb.org/t/p/w92${movie.poster}" alt="${movieName}">
-                                `;
-                            } else {
-                                movieDiv.innerHTML = `
-                                    <img src="${movie.poster}" alt="${movieName}">
-                                `;
-                            }
-                        } else {
-                            movieDiv.className += ' missing';
-                            movieDiv.innerHTML = `
-                                <div style="font-size: ${3 * imageWidth / movieName.length}px">
-                                    <span>${movieName}</span>
-                                </div>
-                            `;
-                        }
-                        if (movie.tmdb_id) {
-                            if (movie.has_female_director) {
-                                numWomen += 1;
-
-                                movieDiv.className += ' female';
-                            }
-                            numTotal += 1;
-                            if (movie.language) {
-                                if (!(movie.language in languages)) {
-                                    languages[movie.language] = 0;
-                                }
-                                languages[movie.language] += 1;
-                            }
-                            if (movie.countries) {
-                                for (const country of movie.countries) {
-                                    if (!(country in countries)) {
-                                        countries[country] = 0;
-                                    }
-                                    countries[country] += 1;
-                                }
-                            }
-                        }
-                        container.appendChild(movieDiv);
-                        // Add in the tooltip if the image is too small
-                        if (imageWidth < 70) {
-                            tippy(movieDiv, {
-                                animation: 'scale',
-                                content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
-                                allowHTML: true,
-                                followCursor: true,
-                                duration: 0,
-                                maxWidth: 170, // image width + 20 for borders
-                            });
-                        }
-                    });
-
-                    // And make it so the new images can't be dragged
-                    document.querySelectorAll('img').forEach(img => {
-                        img.ondragstart = function() { return false; };
-                    });
-
-                    // fetch('scrape_countries.php', {
-                    //     method: 'GET',
-                    // })
-                    // .then(response => response.text())
-                    // .then(data => {
-                    //     const countryLanguageInfo = JSON.parse(data);
-                    //     console.log(countryLanguageInfo);
-
-                    //     // Handle stats setup
-                    //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
-                    //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
-
-                    //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
-
-                    //     let countryHTML = '';
-                    //     for (const country in countryLanguageInfo['countries']) {
-                    //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
-                    //         if (country in countries) {
-                    //             countryHTML += '✅: ' + countries[country] + '</a>';
-                    //         } else {
-                    //             countryHTML += '❌ </a>';
-                    //         }
-                    //     }
-                    //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
-
-                    //     let languageHTML = '';
-                    //     for (const language in countryLanguageInfo['languages']) {
-                    //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
-                    //         if (language in languages) {
-                    //             languageHTML += '✅: ' + languages[language] + '</a>';
-                    //         } else {
-                    //             languageHTML += '❌ </a>';
-                    //         }
-                    //     }
-                    //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
-                    // });
                 })
                 .catch(error => {
                     console.error('Error:', error);
