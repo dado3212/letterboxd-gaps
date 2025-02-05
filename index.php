@@ -439,9 +439,9 @@
             }
 
             let allData = [];
-            document.getElementById('list-select').addEventListener('change', function () {
-                swapList(allData[Number(this.value)]);
-            });
+            // document.getElementById('list-select').addEventListener('change', function () {
+            //     swapList(allData[Number(this.value)]);
+            // });
 
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
@@ -464,13 +464,57 @@
                     let data = JSON.parse(rawData);
                     // This is a .zip with multiple movies
                     if (Array.isArray(data)) {
-                        // Set up the list selector
+                        // Set up the list selector, which is composed of two pieces
+                        const listSelect = document.getElementById('list-select');
+                        listSelect.innerHTML = '';
+                        // One, the "currently selected view"
                         listSelect.style.display = 'block';
+                        let innerHTML = `
+                            <div class="selected">
+                                <span class="name">${data[0].name}</span><span class="number">${data[0].movies.length}</span></div>
+                            </div>
+                            <div class="dropdown">
+                        `;
+                        let dataIndex = 0;
+                        allData = [];
+                        // Two, the dropdown menu that unfolds
                         for (var i = 0; i < data.length; i++) {
-                            const movie = data[i];
-                            listSelect.innerHTML += `<option value="${i}">${movie['name']} - ${movie['movies'].length}</option>`;
+                            if (data[i].type == 'group') {
+                                innerHTML += `
+                                <div class="group"><span class="name">${data[i].name}</span>
+                                    <div class="sublist">`;
+                                for (var j = 0; j < data[i].sublists.length; j++) {
+                                    innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].sublists[j].name}</span><span class="number">${data[i].sublists[j].movies.length}</span></div>`;
+                                    allData.push(data[i].sublists[j]);
+                                    dataIndex += 1;
+                                }
+                                innerHTML += '</div></div>';
+                            } else {
+                                innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].name}</span><span class="number">${data[i].movies.length}</span></div>`;
+                                allData.push(data[i]);
+                                dataIndex += 1;
+                            }
                         }
-                        allData = data;
+                        listSelect.innerHTML = innerHTML + '</div>';
+                        const selected = document.querySelector('#list-select .selected');
+
+                        selected.onclick = () => {
+                            listSelect.classList.toggle('opened');
+                        };
+                        document.querySelectorAll('.dropdown div:not(.group):not(.sublist)').forEach(list => {
+                            list.onclick = () => {
+                                listSelect.classList.remove('opened');
+                                selected.innerHTML = list.innerHTML;
+
+                                console.log([list, list.dataset, list.dataset.list]);
+                                swapList(allData[Number(list.dataset.list)]);
+                            };
+                        });
+                        document.querySelectorAll('.dropdown .group').forEach(group => {
+                            group.onclick = () => {
+                                group.classList.toggle('opened');
+                            };
+                        });
                         swapList(data[0]);
                     } else {
                         swapList(data);
@@ -495,66 +539,6 @@
 
                 tryToUpload(formData);
             }
-
-            // TODO: Remove. Temporary code to stylize the list selector.
-            transitionToAnalysis();
-
-            const lists = [
-                {type: 'standalone', name: 'Watchlist', movies: 3},
-                {type: 'group', name: 'Diary', sublists: [
-                    {type: 'standalone', name: 'Full Diary', movies: 4},
-                    {type: 'standalone', name: '2025', movies: 1},
-                    {type: 'standalone', name: '2024', movies: 12},
-                ]},
-                {type: 'standalone', name: 'Watched', movies: 20},
-                {type: 'group', name: 'Lists', sublists: [
-                    {type: 'standalone', name: 'American Exceptionalism', movies: 25},
-                    {type: 'standalone', name: 'The Grinchiest Christmases', movies: 700},
-                ]},
-            ];
-
-            const listSelect = document.getElementById('list-select');
-            listSelect.innerHTML = '';
-            // Set up the list selector, which is composed of two pieces
-            // One, the "currently selected view"
-            // Two, the dropdown menu that unfolds
-            listSelect.style.display = 'block';
-            let innerHTML = `
-                <div class="selected">
-                    <span class="name">${lists[0].name}</span><span class="number">${lists[0].movies}</span></div>
-                </div>
-                <div class="dropdown">
-            `;
-            for (var i = 0; i < lists.length; i++) {
-                if (lists[i].type == 'standalone') {
-                    innerHTML += `<div><span class="name">${lists[i].name}</span><span class="number">${lists[i].movies}</span></div>`;
-                } else if (lists[i].type == 'group') {
-                    innerHTML += `
-                    <div class="group"><span class="name">${lists[i].name}</span>
-                        <div class="sublist">`;
-                    for (var j = 0; j < lists[i].sublists.length; j++) {
-                        innerHTML += `<div><span class="name">${lists[i].sublists[j].name}</span><span class="number">${lists[i].sublists[j].movies}</span></div>`;
-                    }
-                    innerHTML += '</div></div>';
-                }
-            }
-            listSelect.innerHTML = innerHTML + '</div>';
-            const selected = document.querySelector('#list-select .selected');
-
-            selected.onclick = () => {
-                listSelect.classList.toggle('opened');
-            };
-            document.querySelectorAll('.dropdown div:not(.group):not(.sublist)').forEach(list => {
-                list.onclick = () => {
-                    listSelect.classList.remove('opened');
-                    selected.innerHTML = list.innerHTML;
-                };
-            });
-            document.querySelectorAll('.dropdown .group').forEach(group => {
-                group.onclick = () => {
-                    group.classList.toggle('opened');
-                };
-            });
         </script>
     </body>
 </html>

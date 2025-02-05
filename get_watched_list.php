@@ -135,6 +135,8 @@ function handleZip($file) {
 
     // Process the extracted files in memory
     $all_data = [];
+    $diary = [];
+    $lists = [];
     foreach ($files as $file) {
       /*
         Handle
@@ -143,11 +145,39 @@ function handleZip($file) {
         watchlist.csv
         lists/<whatever>
       */
-      if (str_starts_with($file['name'], 'lists/') || in_array($file['name'], ['watched.csv', 'diary.csv', 'watchlist.csv'])) {
+      if (str_starts_with($file['name'], 'lists/')) {
         $content = parseCsv($file['content']);
-        $result = processCsvContent($content, null, $file['name'] === 'watched.csv' ? 'watched' : null);
+        $result = processCsvContent($content);
+        $lists[] = $result;
+      } else if ($file['name'] === 'diary.csv') {
+        $content = parseCsv($file['content']);
+        $result = processCsvContent($content);
+        // Split by year
+        $result['name'] = 'Full Year';
+        $diary[] = $result;
+      } else if ($file['name'] === 'watched.csv') {
+        $content = parseCsv($file['content']);
+        $result = processCsvContent($content, null, 'Watched');
+        $all_data[] = $result;
+      } else if ($file['name'] === 'watchlist.csv') {
+        $content = parseCsv($file['content']);
+        $result = processCsvContent($content, null, 'Watchlist');
         $all_data[] = $result;
       }
+    }
+    if (count($lists) > 0) {
+      $all_data[] = [
+        'name' => 'Lists',
+        'type' => 'group',
+        'sublists' => $lists,
+      ];
+    }
+    if (count($diary) > 0) {
+      $all_data[] = [
+        'name' => 'Diary',
+        'type' => 'group',
+        'sublists' => $diary,
+      ];
     }
     header('Content-Type: application/json');
     echo json_encode($all_data);
