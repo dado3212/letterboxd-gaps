@@ -5,252 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Letterboxd Gaps</title>
-        <style>
-            @font-face {
-                font-family: SharpGroteskSmBold21;
-                font-display: block;
-                src: url('./fonts/letterboxdLogo.woff2') format('woff2');
-            }
-            @font-face {
-                font-family: SharpGroteskBook15;
-                font-display: block;
-                src: url('./fonts/subtext.woff2') format('woff2');
-            }
-            @font-face {
-                font-family: GraphikSemiBold;
-                font-display: block;
-                src: url('./fonts/Graphik-Semibold-Web.woff') format('woff');
-            }
-            .center-wrapper {
-                width: 100%;
-                height: 100%;
-
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-            .center {
-                position: relative;
-
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            .center .title {
-                text-align: center; 
-                padding: 35px 60px;
-            }
-            .title {
-                color: #eff1f2;
-            }
-            .header {
-                font-family: SharpGroteskSmBold21;
-                font-size: 4em;
-                position: relative;
-                top: 0px;
-                left: 0px;
-
-                transition: top 2s, left 1s;
-
-                .progress {
-                    position: absolute;
-                    bottom: 0px;
-                    width: 100%;
-                    overflow: hidden;
-
-                    transition: 0.5s ease;
-                
-                    .wrapper {
-                        position: absolute;
-                        bottom: 0px;
-                    }
-                }
-
-                .green {
-                    color: #00E054;
-                }
-
-                .blue {
-                    color: #40BCF4;
-                }
-
-                .orange {
-                    color: #FF8000;
-                }
-            }
-            .nav {
-                display: none;
-            }
-            .nav .title {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-left: -80px;
-            }
-            .nav .subtext {
-                margin-left: 50px;
-                letter-spacing: 1em;
-            }
-            .menu {
-                display: flex;
-                align-items: center;
-                padding: 5px 0;
-                justify-content: center;
-            }
-            .menu button {
-                all: unset;
-                cursor: pointer;
-                padding: 9px 12px 8px;
-                border-radius: 3px;
-                margin-left: 34px;
-                background: #00ac1c;
-                box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, .3);
-                color: #f4fcf0;
-                text-transform: uppercase;
-                -webkit-font-smoothing: antialiased;
-
-                font-family: GraphikSemiBold, sans-serif;
-
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -o-user-select: none;
-                user-select: none;
-
-                font-size: 0.8em;
-                font-weight: 400;
-                letter-spacing: .075em;
-                line-height: 12px;
-            }
-            .menu button:hover {
-                background: #009d1a;
-                color: #fff;
-            }
-            .menu #numMovies .total {
-                font-weight: bold;
-            }
-            .menu #numMovies .filter {
-                display: none;
-            }
-            .subtext {
-                font-family: SharpGroteskBook15;
-                font-size: 2em;
-                letter-spacing: 2em;
-
-                /* To offset the last letter spacing */
-                margin-right: -2em;
-
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transition: top 2s, left 1s, letter-spacing 2s;
-            }
-            @keyframes fillAnimation {
-                from {
-                    height: 0%;
-                }
-                to {
-                    height: 100%;
-                }
-            }
-            html {
-                background-color: #14181c;
-                color: #d8e0e8;
-                font-size: 16px;
-                font-family: sans-serif;
-                height: 100%;
-
-                transition: 0.3s ease;
-            }
-            body {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-            }
-            html.hover {
-                background-color: #1c2127;
-            }
-            .center img {
-                border-radius: 4px;
-                position: absolute;
-
-                transition: top 0.3s, left 0.3s, opacity 2s;
-            }
-            
-            #movies {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 4px;
-                margin: 0 auto;
-
-                .movie {
-                    width: 30px;
-                    height: 44px;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    box-sizing: border-box;
-
-                    &.missing {
-                        border: 1px solid;
-
-                        div {
-                            transform-origin: left center;
-                            transform: rotate(57.3deg);
-                            margin: -0.6em 0 0 0.1em;
-                            width: 180%;
-                            text-align: center;
-
-                            span {
-                                white-space: nowrap;
-                            }
-                        }
-                    }
-
-                    img {
-                        width: 100%;
-                    }
-                }
-            }
-            #stats {
-                width: 400;
-                margin: 0 auto;
-                
-                a {
-                    display: block;
-                }
-            }
-            .tippy-content img {
-                max-width: 150px;
-            }
-            .tippy-content b {
-                text-align: center;
-                display: inline-block;
-                width: 100%;
-                font-size: 1.25em;
-                margin-bottom: 6px;
-                font-weight: normal;
-            }
-            #movies .movie {
-                cursor: pointer;
-                position: relative;
-            }
-            #movies .movie::after {
-                content: "";
-                cursor: pointer;
-                width: calc(100% - 6px);
-                height: calc(100% - 6px);
-                display: inline-block;
-                border: 3px solid #00ac1c;
-                position: absolute;
-                left: 0px;
-                top: 0px;
-                opacity: 0;
-                transition: 0.3s ease;
-            }
-            #movies .movie:hover::after {
-                opacity: 1;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="main.css">
     </head>
     <body>
         <!-- The main center -->
@@ -358,8 +113,7 @@
                 <div class="subtext">GAPS</div>
             </div>
             <div class="menu">
-                <select name="list" id="list-select">
-                </select>
+                <div id="list-select"></div>
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
                 <button class="countries">Countries</button>
@@ -741,6 +495,46 @@
 
                 tryToUpload(formData);
             }
+
+            // TODO: Remove. Temporary code to stylize the list selector.
+            transitionToAnalysis();
+
+            const lists = [
+                {type: 'standalone', name: 'Watchlist', movies: 3},
+                {type: 'group', name: 'Diary', sublists: [
+                    {type: 'standalone', name: 'Full Diary', movies: 4},
+                    {type: 'standalone', name: '2025', movies: 1},
+                    {type: 'standalone', name: '2024', movies: 12},
+                ]},
+                {type: 'standalone', name: 'Watched', movies: 20},
+                {type: 'group', name: 'Lists', sublists: [
+                    {type: 'standalone', name: 'American Exceptionalism', movies: 25},
+                    {type: 'standalone', name: 'The Grinchiest Christmases', movies: 700},
+                ]},
+            ];
+
+            const listSelect = document.getElementById('list-select');
+            listSelect.innerHTML = '';
+            // Set up the list selector
+            listSelect.style.display = 'block';
+            let innerHTML = '';
+            for (var i = 0; i < lists.length; i++) {
+                if (lists[i].type == 'standalone') {
+                    if (i === 0) {
+                        innerHTML += '<div class="selected">';
+                    } else {
+                        innerHTML += '<div>';
+                    }
+                    innerHTML += `<span class="name">${lists[i].name}</span><span class="number">${lists[i].movies}</span></div>`;
+                } else if (lists[i].type == 'group') {
+                    innerHTML += `<div><span class="name">${lists[i].name}</span>`;
+                    for (var j = 0; j < lists[i].sublists.length; j++) {
+                        innerHTML += `<div><span class="name">${lists[i].sublists[j].name}</span><span class="number">${lists[i].sublists[j].movies}</span></div>`;
+                    }
+                    innerHTML += '</div>';
+                }
+            }
+            listSelect.innerHTML = innerHTML;
         </script>
     </body>
 </html>
