@@ -242,3 +242,82 @@ html.hover {
 #movies .movie:hover::after {
     opacity: 1;
 }
+/** List Selector */
+#list-select {
+  width: 300px;
+  margin: 0 15px;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+}
+#list-select .selected {
+  border-radius: 4px;
+}
+#list-select.opened .selected {
+  border-radius: 4px 4px 0px 0px;
+}
+.dropdown {
+  position: absolute;
+  width: 100%;
+  border-radius: 0px 0px 4px 4px;
+  overflow: hidden;
+}
+#list-select .selected, .dropdown > div {
+  display: flex;
+  justify-content: space-between;
+  background-color: #89a;
+  padding: 6px;
+  color: #2c3440;
+  position: relative;
+
+  transition: 0.2s ease;
+}
+.sublist {
+  margin: 6px 0 -6px 0;
+}
+.sublist div {
+  display: flex;
+  justify-content: space-between;
+  color: #2c3440;
+  position: relative;
+  padding: 6px 6px 6px 12px;
+  margin: 0 -6px;
+
+  transition: 0.2s ease;
+}
+.dropdown > .group {
+  flex-direction: column;
+}
+#list-select .selected:hover, .dropdown > div:not(.opened):hover, .sublist > div:hover {
+  background-color: #a5b2c0;
+}
+#list-select:not(.opened) div.selected .number {
+  margin-right: 20px;
+}
+#list-select:not(.opened) div.selected:after {
+  content: "▼";
+  transform: scale(1.3, 1);
+  font-size: 0.7em;
+  position: absolute;
+  right: 6px;
+  opacity: 0.8;
+  top: 9px;
+}
+#list-select .group:not(.opened) .sublist {
+  display: none;
+}
+#list-select:not(.opened) div:not(.selected) {
+  display: none;
+}
+#list-select > div.group:after {
+  content: "▼";
+  transform: scale(1.3, 1);
+  font-size: 0.7em;
+  position: absolute;
+  right: 6px;
+  opacity: 0.8;
+  top: 9px;
+}
+#list-select .number {
+  color: #575f6a;
+}

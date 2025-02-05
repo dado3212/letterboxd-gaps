@@ -515,26 +515,46 @@
 
             const listSelect = document.getElementById('list-select');
             listSelect.innerHTML = '';
-            // Set up the list selector
+            // Set up the list selector, which is composed of two pieces
+            // One, the "currently selected view"
+            // Two, the dropdown menu that unfolds
             listSelect.style.display = 'block';
-            let innerHTML = '';
+            let innerHTML = `
+                <div class="selected">
+                    <span class="name">${lists[0].name}</span><span class="number">${lists[0].movies}</span></div>
+                </div>
+                <div class="dropdown">
+            `;
             for (var i = 0; i < lists.length; i++) {
                 if (lists[i].type == 'standalone') {
-                    if (i === 0) {
-                        innerHTML += '<div class="selected">';
-                    } else {
-                        innerHTML += '<div>';
-                    }
-                    innerHTML += `<span class="name">${lists[i].name}</span><span class="number">${lists[i].movies}</span></div>`;
+                    innerHTML += `<div><span class="name">${lists[i].name}</span><span class="number">${lists[i].movies}</span></div>`;
                 } else if (lists[i].type == 'group') {
-                    innerHTML += `<div><span class="name">${lists[i].name}</span>`;
+                    innerHTML += `
+                    <div class="group"><span class="name">${lists[i].name}</span>
+                        <div class="sublist">`;
                     for (var j = 0; j < lists[i].sublists.length; j++) {
                         innerHTML += `<div><span class="name">${lists[i].sublists[j].name}</span><span class="number">${lists[i].sublists[j].movies}</span></div>`;
                     }
-                    innerHTML += '</div>';
+                    innerHTML += '</div></div>';
                 }
             }
-            listSelect.innerHTML = innerHTML;
+            listSelect.innerHTML = innerHTML + '</div>';
+            const selected = document.querySelector('#list-select .selected');
+
+            selected.onclick = () => {
+                listSelect.classList.toggle('opened');
+            };
+            document.querySelectorAll('.dropdown div:not(.group):not(.sublist)').forEach(list => {
+                list.onclick = () => {
+                    listSelect.classList.remove('opened');
+                    selected.innerHTML = list.innerHTML;
+                };
+            });
+            document.querySelectorAll('.dropdown .group').forEach(group => {
+                group.onclick = () => {
+                    group.classList.toggle('opened');
+                };
+            });
         </script>
     </body>
 </html>
