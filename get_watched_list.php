@@ -145,7 +145,7 @@ function handleZip($file) {
       */
       if (str_starts_with($file['name'], 'lists/') || in_array($file['name'], ['watched.csv', 'diary.csv', 'watchlist.csv'])) {
         $content = parseCsv($file['content']);
-        $result = processCsvContent($content);
+        $result = processCsvContent($content, null, $file['name'] === 'watched.csv' ? 'watched' : null);
         $all_data[] = $result;
       }
     }
@@ -170,6 +170,8 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     $b_color = (float) json_decode($b['primary_color'] ?? '{"h": 0}', true)['h'];
     return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
   };
+
+  // $watchlistMovies = array_slice($watchlistMovies, 0, 1);
 
   // We have the link to the review, not to the movie. Don't try and process
   // these and upload them, because it's expensive to scrape. We'll do best
@@ -198,7 +200,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     $movies = [];
     foreach ($watchlistMovies as $movie) {
       $key = $movie['Name'] . '-' . $movie['Year'];
-      if (array_key_exists($key, $serverMovieInfo)) {
+      if (array_key_exists($key, $serverMovieInfo) && $serverMovieInfo[$key]['status'] !== 'pending') {
         $movieInfo = $serverMovieInfo[$key];
         $movieInfo['countries'] = json_decode($movieInfo['countries']);
         $movies[] = $movieInfo;
@@ -215,7 +217,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
     usort($movies, $color_sorting);
 
-    return ['movies' => $movies, 'upload_id' => null, 'upload_count' => 0];
+    return ['movies' => $movies, 'upload_id' => null, 'upload_count' => 0, 'name' => $list_name ?? $type];
   }
 
   // If this is a list, map it accordingly
