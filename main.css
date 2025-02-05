@@ -263,27 +263,30 @@ html.hover {
   overflow: scroll;
   max-height: calc(100vh - 200px);
   z-index: 1;
+  background: #89a;
+  padding-bottom: 5px;
+  box-sizing: border-box;
 }
 #list-select .selected, .dropdown > div {
   display: flex;
   justify-content: space-between;
   background-color: #89a;
-  padding: 6px;
+  padding: 7px 12px;
   color: #2c3440;
   position: relative;
 
   transition: 0.2s ease;
 }
 .sublist {
-  margin: 6px 0 -6px 0;
+  margin: 7px 0 -7px 0;
 }
 .sublist div {
   display: flex;
   justify-content: space-between;
   color: #2c3440;
   position: relative;
-  padding: 6px 6px 6px 12px;
-  margin: 0 -6px;
+  padding: 7px 12px 7px 26px;
+  margin: 0 -14px;
 
   transition: 0.2s ease;
 }
@@ -312,6 +315,9 @@ html.hover {
   top: 9px;
 }
 #list-select .group:not(.opened) .sublist {
+  display: none;
+}
+#list-select:not(.opened) .dropdown {
   display: none;
 }
 #list-select > div.group:after {

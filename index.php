@@ -258,6 +258,11 @@
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
 
+                // Clear gender selector
+                const numFilter = document.querySelector('#numMovies .filter');
+                numFilter.style.display = 'none';
+                showingFemaleDirectors = false;
+
                 // Clear tippy
                 const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
 
@@ -505,8 +510,6 @@
                             list.onclick = () => {
                                 listSelect.classList.remove('opened');
                                 selected.innerHTML = list.innerHTML;
-
-                                console.log([list, list.dataset, list.dataset.list]);
                                 swapList(allData[Number(list.dataset.list)]);
                             };
                         });

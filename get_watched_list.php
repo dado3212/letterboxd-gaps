@@ -153,8 +153,25 @@ function handleZip($file) {
         $content = parseCsv($file['content']);
         $result = processCsvContent($content);
         // Split by year
-        $result['name'] = 'Full Year';
+        $result['name'] = 'All Time';
         $diary[] = $result;
+
+        $years = [];
+        foreach ($result['movies'] as $movie) {
+          $watched_year = $movie['watched_year'];
+          if (array_key_exists($watched_year, $years)) {
+            $years[$watched_year][] = $movie;
+          } else {
+            $years[$watched_year] = [$movie];
+          }
+        }
+        krsort($years);
+        foreach ($years as $year => $movies) {
+          $diary[] = [
+            'movies' => $movies,
+            'name' => $year
+          ];
+        }
       } else if ($file['name'] === 'watched.csv') {
         $content = parseCsv($file['content']);
         $result = processCsvContent($content, null, 'Watched');
@@ -233,6 +250,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       if (array_key_exists($key, $serverMovieInfo) && $serverMovieInfo[$key]['status'] !== 'pending') {
         $movieInfo = $serverMovieInfo[$key];
         $movieInfo['countries'] = json_decode($movieInfo['countries']);
+        $movieInfo['watched_year'] = substr($movie['Watched Date'], 0, 4);
         $movies[] = $movieInfo;
       } else {
         // If it's NOT in the database, we're not adding it, see above
@@ -240,6 +258,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
           'movie_name' => $movie['Name'],
           'year' => $movie['Year'],
           'letterboxd_url' => $movie['Letterboxd URI'], // this is the review URL, but I think it's fine
+          'watched_year' => substr($movie['Watched Date'], 0, 4),
           'status' => 'pending',
         ];
       }
