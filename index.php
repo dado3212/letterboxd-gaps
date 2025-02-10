@@ -137,6 +137,141 @@
         </div>
 
         -->
+        <div id="svgMap"></div>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.js"></script> -->
+        <link href="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css" rel="stylesheet">
+        <script src="https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca"></script>
+        <style>
+            #svgMap {
+                width: 950px;
+                margin: 0 auto;
+            }
+            .svgMap-map-wrapper {
+                background: #14181c;
+                border: 1px solid #303840;
+                border-radius: 4px;
+                color: #9ab;
+            }
+            .svgMap-map-wrapper .svgMap-country {
+                cursor: pointer;
+                stroke: rgba(0, 0, 0, .25);
+                stroke-width: 1.5;
+                stroke-linejoin: round;
+                vector-effect: non-scaling-stroke;
+                transition: fill .2s, stroke .2s;
+            }
+            .svgMap-map-wrapper .svgMap-country:hover {
+                stroke: rgba(0, 0, 0, .25);
+                fill: #40bcf4;
+            }
+            .svgMap-tooltip {
+                background: #456;
+                border-radius: 4px;
+                border-bottom: none;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+                color: #9ab;
+            }
+            .svgMap-tooltip .svgMap-tooltip-content-container {
+                padding: 8px 12px;
+                position: relative;
+            }
+            .svgMap-tooltip .svgMap-tooltip-title {
+                color: #cde;
+                font-family: Graphik-Semibold-Web, sans-serif;
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 1;
+                padding: 2px 0;
+                text-align: center;
+                white-space: nowrap;
+            }
+            .svgMap-tooltip .svgMap-tooltip-content {
+                color: #9ab;
+                font-size: 12px;
+                line-height: 1;
+                margin: 0;
+                text-align: center;
+                white-space: nowrap;
+            }
+            .svgMap-tooltip .svgMap-tooltip-content .svgMap-tooltip-no-data {
+                color: #9ab;
+                padding: 2px 0;
+            }
+            .svgMap-tooltip .svgMap-tooltip-content table td span {
+                color: #9ab;
+            }
+            .svgMap-tooltip .svgMap-tooltip-pointer:after {
+                background: #456;
+                border: none;
+                border-radius: 3px;
+                bottom: 6px;
+                content: "";
+                height: 20px;
+                left: 50%;
+                position: absolute;
+                transform: translateX(-50%) rotate(45deg);
+                width: 20px;
+            }
+            
+            .svgMap-map-controls-wrapper {
+                border-radius: 2px;
+                bottom: 10px;
+                box-shadow: 0 0 0 2px rgba(0,0,0,.1);
+                display: flex;
+                left: 10px;
+                overflow: hidden;
+                position: absolute;
+                z-index: 1
+            }
+
+            .svgMap-map-wrapper .svgMap-map-controls-move, .svgMap-map-wrapper .svgMap-map-controls-zoom {
+                background: #2c3440;
+                display: flex;
+                margin-right: 5px;
+                overflow: hidden
+            }
+
+            .svgMap-map-controls-move:last-child,.svgMap-map-controls-zoom:last-child {
+                margin-right: 0
+            }
+
+            .svgMap-control-button {
+                cursor: pointer;
+                height: 30px;
+                position: relative;
+                width: 30px
+            }
+
+            .svgMap-control-button.svgMap-zoom-button:after,.svgMap-control-button.svgMap-zoom-button:before {
+                background: #9ab;
+                content: "";
+                left: 50%;
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%,-50%);
+                transition: background-color .2s
+            }
+
+            .svgMap-control-button.svgMap-zoom-button:before {
+                height: 3px;
+                width: 11px
+            }
+
+            .svgMap-control-button.svgMap-zoom-button:hover:after,.svgMap-control-button.svgMap-zoom-button:hover:before {
+                background: #fff
+            }
+
+            .svgMap-control-button.svgMap-zoom-button.svgMap-disabled:after,.svgMap-control-button.svgMap-zoom-button.svgMap-disabled:before {
+                background: #ccc
+            }
+
+            .svgMap-control-button.svgMap-zoom-in-button:after {
+                height: 11px;
+                width: 3px
+            }
+        </style>
+
         <div id="movies">
         </div>
 
@@ -253,10 +388,59 @@
             }
 
             function swapList(data) {
+                console.log(data);
                 movies = data.movies;
 
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
+
+                // Set up map
+                let movieCountData = {};
+                let currentMax = 0;
+                movies.forEach(movie => {
+                    if (movie.countries) {
+                        movie.countries.forEach(country => {
+                            if (country in movieCountData) {
+                                movieCountData[country]['count'] += 1;
+                                if (movieCountData[country]['count'] > currentMax) {
+                                    currentMax = movieCountData[country]['count'];
+                                }
+                            } else {
+                                movieCountData[country] = {
+                                    count: 1,
+                                };
+                            }
+                        });
+                    }
+                });
+
+                const svg = document.getElementById('svgMap');
+                svg.innerHTML = '';
+                new svgMap({
+                    targetElementID: 'svgMap',
+                    colorMin: '#007733',
+                    colorMax: '#00E054',
+                    colorNoData: '#303C44',
+                    hideFlag: true,
+                    initialZoom: 1,
+                    minZoom: 1,
+                    noDataText: 'See all…',
+                    data: {
+                        data: {
+                            count: {
+                                name: 'Films:',
+                                format: '{0}',
+                                thousandSeparator: ','
+                            }
+                        },
+                        applyData: 'count',
+                        values: movieCountData,
+                    },
+                });
+                // setTimeout(() => {
+                //     var panZoomTiger = svgPanZoom('.svgMap-map-image');
+                //     panZoomTiger.pan({x: -90, y: -20});
+                // }, 1);
 
                 // Clear gender selector
                 const numFilter = document.querySelector('#numMovies .filter');
@@ -444,9 +628,6 @@
             }
 
             let allData = [];
-            // document.getElementById('list-select').addEventListener('change', function () {
-            //     swapList(allData[Number(this.value)]);
-            // });
 
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
@@ -542,6 +723,8 @@
 
                 tryToUpload(formData);
             }
+
+            transitionToAnalysis();
         </script>
     </body>
 </html>

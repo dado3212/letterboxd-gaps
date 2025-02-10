@@ -14,7 +14,6 @@ Show
 - Likes/time
 - Follower graph (3js?)
 - Follower recommendation
-- Women directions
 - Languages
 - Countries
 
@@ -23,14 +22,12 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Loading bar for .zip drop too
 - Handle .zip uploading not showing new photos (and break dependency on reuploading formdata, jeez)
 - Handle .zip drop
-- Diary sort by year
 - Actually show upload progress
 - Time estimates for uploading
 - TMDB attribution in the UI
 - Letterboxd attribution in the UI
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
-- Zip support
 - Inlcude MySQL databases in this repo
 
 Stretch
@@ -131,7 +128,16 @@ document.querySelectorAll('.center img').forEach(img => {
 });
 ```
 
+## Previous work to city
+https://jamesbvaughan.com/movie-director-genders/
+https://github.com/GoodbyteCo/Directed-By-Women
+https://womenandhollywood.com/resources/statistics/
+
+
 ## Thanks to
 - Letterboxd
 - TMDb
 - Tippy - https://atomiks.github.io/tippyjs/
+- https://stephanwagner.me/coding/blog/create-world-map-charts-with-svgmap#svgMapDemoGDP | https://github.com/StephanWagner/svgMap?tab=readme-ov-file | https://www.cssscript.com/demo/interactive-svg-world-map/
+
+https://www.amcharts.com/demos/zooming-to-countries-map/
