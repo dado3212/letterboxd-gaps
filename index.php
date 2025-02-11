@@ -347,15 +347,15 @@
             function femaleDirectors() {
                 if (!showingFemaleDirectors) {
                     // Highlight them
-                    document.querySelectorAll('.movie:not(.female)').forEach(poster => {
+                    document.querySelectorAll('.movie:not([data-female])').forEach(poster => {
                         poster.style.opacity = 0.2;
                     });
                     const numFilter = document.querySelector('#numMovies .filter');
-                    numFilter.innerHTML = `${document.querySelectorAll('.movie.female').length} out of `;
+                    numFilter.innerHTML = `${document.querySelectorAll('.movie[data-female]').length} out of `;
                     numFilter.style.display = 'initial';
                 } else {
                     // Remove highlighting
-                    document.querySelectorAll('.movie:not(.female)').forEach(poster => {
+                    document.querySelectorAll('.movie:not([data-female])').forEach(poster => {
                         poster.style.opacity = 1.0;
                     });
                     const numFilter = document.querySelector('#numMovies .filter');
@@ -437,10 +437,35 @@
                         values: movieCountData,
                     },
                 });
-                // setTimeout(() => {
-                //     var panZoomTiger = svgPanZoom('.svgMap-map-image');
-                //     panZoomTiger.pan({x: -90, y: -20});
-                // }, 1);
+
+                var svgCountries = svg.querySelector('.svgMap-map-image').querySelectorAll('.svgMap-country');
+                let currentSelectedCountry = null;
+                for (var i = 0; i < svgCountries.length; i++) {
+                    const country = svgCountries[i];
+
+                    country.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        const clickedCountry = country.getAttribute('data-id');
+                        console.log(clickedCountry);
+
+                        if (clickedCountry == currentSelectedCountry) {
+                            document.querySelectorAll('.movie').forEach(poster => {
+                                poster.style.opacity = 1.0;
+                            });
+                        } else {
+                            currentSelectedCountry = clickedCountry;
+                            document.querySelectorAll('.movie').forEach(poster => {
+                                const dataCountries = poster.getAttribute('data-countries');
+                                if (dataCountries && dataCountries.includes(clickedCountry)) {
+                                    poster.style.opacity = 1.0;
+                                } else {
+                                    poster.style.opacity = 0.2;
+                                }
+                            });
+                        }
+                    });
+                }
 
                 // Clear gender selector
                 const numFilter = document.querySelector('#numMovies .filter');
@@ -548,20 +573,22 @@
                             </div>
                         `;
                     }
+                    // shorthand for "we have the tmdb info"
                     if (movie.tmdb_id) {
                         if (movie.has_female_director) {
                             numWomen += 1;
-
-                            movieDiv.className += ' female';
+                            movieDiv.setAttribute('data-female', '1');
                         }
                         numTotal += 1;
                         if (movie.language) {
+                            movieDiv.setAttribute('data-language', movie.language);
                             if (!(movie.language in languages)) {
                                 languages[movie.language] = 0;
                             }
                             languages[movie.language] += 1;
                         }
                         if (movie.countries) {
+                            movieDiv.setAttribute('data-countries', movie.countries.join(','));
                             for (const country of movie.countries) {
                                 if (!(country in countries)) {
                                     countries[country] = 0;
