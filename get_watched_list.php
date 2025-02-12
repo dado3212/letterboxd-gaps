@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
 
+  // TODO: Remove single CSV support, only support .zip
   if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'csv') {
     $error = handleWatchlist($file);
     if ($error === null) {
@@ -196,13 +197,32 @@ function handleZip($file) {
         'sublists' => $diary,
       ];
     }
+    $countries = getCountryData();
     header('Content-Type: application/json');
-    echo json_encode($all_data);
+    echo json_encode([
+      'movies' => $all_data,
+      'countries' => $countries,
+    ]);
     return true;
   } else {
     http_response_code(500);
     echo 'Failed to open .zip file.';
   }
+}
+
+function getCountryData() {
+  $PDO = getDatabase();
+  $stmt = $PDO->prepare("SELECT * FROM countries");
+  $stmt->execute();
+  $rawCountries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $countries = [];
+  foreach ($rawCountries as $rawCountry) {
+    $countries[$rawCountry['country_code']] = [
+      'num_movies' => $rawCountry['num_movies'],
+      'url' => $rawCountry['url'],
+    ];
+  }
+  return $countries;
 }
 
 // TODO: diary/reviews is slow because name/id isn't indexed
@@ -337,7 +357,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       $bindValues = array_merge($bindValues, $info);
     }
 
-    $sql = "INSERT INTO letterboxd.movies
+    $sql = "INSERT INTO movies
     (letterboxd_url, movie_name, `year`)
     VALUES " . implode(', ', $placeholders);
     $stmt = $PDO->prepare($sql);
@@ -353,7 +373,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
   // If any of the other IDs
   $upload_id = null;
   if (!empty($new_ids)) {
-    $sql = "INSERT INTO letterboxd.upload_tracking
+    $sql = "INSERT INTO upload_tracking
     (uploaded)
     VALUES (?)";
     $stmt = $PDO->prepare($sql);

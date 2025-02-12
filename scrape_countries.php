@@ -5,6 +5,12 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// TODO: Properly set up a cron job to run this sporadically
+if (true) {
+  header('Content-Type: application/json');
+  echo json_encode([]);
+}
+
 // From TMDB -> Letterboxd
 $mapping = [
   'countries' => [
@@ -160,6 +166,16 @@ uasort($combined['languages'], function($a, $b) {
   return $b['count'] <=> $a['count'];
 });
 
-header('Content-Type: application/json');
-echo json_encode($combined);
+$PDO = getDatabase();
+$placeholders = [];
+$bindValues = [];
+foreach ($combined['countries'] as $country_code => $info) {
+  $placeholders[] = '(' . implode(',', array_fill(0, 3, '?')) . ')';
+  $bindValues = array_merge($bindValues, [$country_code, $info['count'], $info['url']]);
+}
+$sql = "REPLACE INTO countries
+(country_code, num_movies, url)
+VALUES " . implode(', ', $placeholders);
+$stmt = $PDO->prepare($sql);
+$stmt->execute($bindValues);
 ?>

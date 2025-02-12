@@ -387,6 +387,9 @@
                 }, 0); // takes 2s for the images to fade
             }
 
+            let allData = [];
+            let allCountries = {};
+
             function swapList(data) {
                 console.log(data);
                 movies = data.movies;
@@ -395,24 +398,48 @@
                 container.innerHTML = '';
 
                 // Set up map
-                let movieCountData = {};
-                let currentMax = 0;
-                movies.forEach(movie => {
-                    if (movie.countries) {
-                        movie.countries.forEach(country => {
-                            if (country in movieCountData) {
-                                movieCountData[country]['count'] += 1;
-                                if (movieCountData[country]['count'] > currentMax) {
-                                    currentMax = movieCountData[country]['count'];
+                // If you're viewing your watched list, this is all countries you haven't seen
+                let movieCountData;
+                if (data['name'] == 'Watched') {
+                    movieCountData = {...allCountries};
+                    movies.forEach(movie => {
+                        if (movie.countries) {
+                            movie.countries.forEach(country => {
+                                if (country in movieCountData) {
+                                    delete movieCountData[country];
                                 }
-                            } else {
-                                movieCountData[country] = {
-                                    count: 1,
-                                };
-                            }
-                        });
-                    }
-                });
+                            });
+                        }
+                    });
+                } else {
+                    // Get all of the countries that you've already seen from the watchlist
+                    let watchedCountries = new Set();
+                    allData[0].movies.forEach(movie => {
+                        if (movie.countries) {
+                            movie.countries.forEach(country => {
+                                watchedCountries.add(country);
+                            });
+                        }
+                    });
+                    // Filter your current list to countries you haven't seen. 
+                    movieCountData = {};
+                    movies.forEach(movie => {
+                        if (movie.countries) {
+                            movie.countries.forEach(country => {
+                                if (watchedCountries.has(country)) {
+                                    return;
+                                }
+                                if (country in movieCountData) {
+                                    movieCountData[country]['num_movies'] += 1;
+                                } else {
+                                    movieCountData[country]= {
+                                        'num_movies': 1
+                                    };
+                                }
+                            });
+                        }
+                    });
+                }
 
                 const svg = document.getElementById('svgMap');
                 svg.innerHTML = '';
@@ -427,13 +454,13 @@
                     noDataText: 'See all…',
                     data: {
                         data: {
-                            count: {
+                            num_movies: {
                                 name: 'Films:',
                                 format: '{0}',
                                 thousandSeparator: ','
                             }
                         },
-                        applyData: 'count',
+                        applyData: 'num_movies',
                         values: movieCountData,
                     },
                 });
@@ -615,46 +642,7 @@
                 document.querySelectorAll('img').forEach(img => {
                     img.ondragstart = function() { return false; };
                 });
-
-                // fetch('scrape_countries.php', {
-                //     method: 'GET',
-                // })
-                // .then(response => response.text())
-                // .then(data => {
-                //     const countryLanguageInfo = JSON.parse(data);
-                //     console.log(countryLanguageInfo);
-
-                //     // Handle stats setup
-                //     document.querySelector('#stats #gender #female').innerHTML = numWomen;
-                //     document.querySelector('#stats #gender #total').innerHTML = numTotal;
-
-                //     document.querySelector('#stats #total #numWatched').innerHTML = numTotal;
-
-                //     let countryHTML = '';
-                //     for (const country in countryLanguageInfo['countries']) {
-                //         countryHTML += '<a target="_blank" href="' + countryLanguageInfo['countries'][country]['url'] + '">' + countryLanguageInfo['countries'][country]['full'] + '(' + countryLanguageInfo['countries'][country]['count'] + ')';
-                //         if (country in countries) {
-                //             countryHTML += '✅: ' + countries[country] + '</a>';
-                //         } else {
-                //             countryHTML += '❌ </a>';
-                //         }
-                //     }
-                //     document.querySelector('#stats #countries #numWatched').innerHTML = countryHTML;
-
-                //     let languageHTML = '';
-                //     for (const language in countryLanguageInfo['languages']) {
-                //         languageHTML += '<a target="_blank" href="' + countryLanguageInfo['languages'][language]['url'] + '">' + countryLanguageInfo['languages'][language]['full'] + '(' + countryLanguageInfo['languages'][language]['count'] + ')';
-                //         if (language in languages) {
-                //             languageHTML += '✅: ' + languages[language] + '</a>';
-                //         } else {
-                //             languageHTML += '❌ </a>';
-                //         }
-                //     }
-                //     document.querySelector('#stats #language #numWatched').innerHTML = languageHTML;
-                // });
             }
-
-            let allData = [];
 
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
@@ -676,60 +664,60 @@
                 .then(rawData => {
                     let data = JSON.parse(rawData);
                     // This is a .zip with multiple movies
-                    if (Array.isArray(data)) {
-                        // Set up the list selector, which is composed of two pieces
-                        const listSelect = document.getElementById('list-select');
-                        listSelect.innerHTML = '';
-                        // One, the "currently selected view"
-                        listSelect.style.display = 'block';
-                        let innerHTML = `
-                            <div class="selected">
-                                <span class="name">${data[0].name}</span><span class="number">${data[0].movies.length}</span></div>
-                            </div>
-                            <div class="dropdown">
-                        `;
-                        let dataIndex = 0;
-                        allData = [];
-                        // Two, the dropdown menu that unfolds
-                        for (var i = 0; i < data.length; i++) {
-                            if (data[i].type == 'group') {
-                                innerHTML += `
-                                <div class="group"><span class="name">${data[i].name}</span>
-                                    <div class="sublist">`;
-                                for (var j = 0; j < data[i].sublists.length; j++) {
-                                    innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].sublists[j].name}</span><span class="number">${data[i].sublists[j].movies.length}</span></div>`;
-                                    allData.push(data[i].sublists[j]);
-                                    dataIndex += 1;
-                                }
-                                innerHTML += '</div></div>';
-                            } else {
-                                innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].name}</span><span class="number">${data[i].movies.length}</span></div>`;
-                                allData.push(data[i]);
+                    allCountries = data.countries;
+                    data = data.movies;
+                    console.log(allCountries);
+                    console.log(data);
+                    // Set up the list selector, which is composed of two pieces
+                    const listSelect = document.getElementById('list-select');
+                    listSelect.innerHTML = '';
+                    // One, the "currently selected view"
+                    listSelect.style.display = 'block';
+                    let innerHTML = `
+                        <div class="selected">
+                            <span class="name">${data[0].name}</span><span class="number">${data[0].movies.length}</span></div>
+                        </div>
+                        <div class="dropdown">
+                    `;
+                    let dataIndex = 0;
+                    allData = [];
+                    // Two, the dropdown menu that unfolds
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].type == 'group') {
+                            innerHTML += `
+                            <div class="group"><span class="name">${data[i].name}</span>
+                                <div class="sublist">`;
+                            for (var j = 0; j < data[i].sublists.length; j++) {
+                                innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].sublists[j].name}</span><span class="number">${data[i].sublists[j].movies.length}</span></div>`;
+                                allData.push(data[i].sublists[j]);
                                 dataIndex += 1;
                             }
+                            innerHTML += '</div></div>';
+                        } else {
+                            innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].name}</span><span class="number">${data[i].movies.length}</span></div>`;
+                            allData.push(data[i]);
+                            dataIndex += 1;
                         }
-                        listSelect.innerHTML = innerHTML + '</div>';
-                        const selected = document.querySelector('#list-select .selected');
-
-                        selected.onclick = () => {
-                            listSelect.classList.toggle('opened');
-                        };
-                        document.querySelectorAll('.dropdown div:not(.group):not(.sublist)').forEach(list => {
-                            list.onclick = () => {
-                                listSelect.classList.remove('opened');
-                                selected.innerHTML = list.innerHTML;
-                                swapList(allData[Number(list.dataset.list)]);
-                            };
-                        });
-                        document.querySelectorAll('.dropdown .group').forEach(group => {
-                            group.onclick = () => {
-                                group.classList.toggle('opened');
-                            };
-                        });
-                        swapList(data[0]);
-                    } else {
-                        swapList(data);
                     }
+                    listSelect.innerHTML = innerHTML + '</div>';
+                    const selected = document.querySelector('#list-select .selected');
+
+                    selected.onclick = () => {
+                        listSelect.classList.toggle('opened');
+                    };
+                    document.querySelectorAll('.dropdown div:not(.group):not(.sublist)').forEach(list => {
+                        list.onclick = () => {
+                            listSelect.classList.remove('opened');
+                            selected.innerHTML = list.innerHTML;
+                            swapList(allData[Number(list.dataset.list)]);
+                        };
+                    });
+                    document.querySelectorAll('.dropdown .group').forEach(group => {
+                        group.onclick = () => {
+                            group.classList.toggle('opened');
+                        };
+                    });
+                    swapList(data[0]);
                 })
                 .catch(error => {
                     console.error('Error:', error);
