@@ -476,6 +476,11 @@
                         const clickedCountry = country.getAttribute('data-id');
                         console.log(clickedCountry);
 
+                        if (data['name'] == 'Watched') {
+                            window.open(allCountries[clickedCountry]['url'], '_blank');
+                            return;
+                        }
+
                         if (clickedCountry == currentSelectedCountry) {
                             document.querySelectorAll('.movie').forEach(poster => {
                                 poster.style.opacity = 1.0;

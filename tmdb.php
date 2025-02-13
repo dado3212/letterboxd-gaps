@@ -48,11 +48,16 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'poster' => $posterUrl ?? ($additionalData['poster_path'] ? ('https://image.tmdb.org/t/p/w92' . $additionalData['poster_path']) : null),
         'language' => $additionalData['original_language'],
         'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
-        'production_countries' => array_filter(array_unique(array_map(function($company) {
-          return $company['origin_country'];
-        }, $additionalData['production_companies'])), function ($country) {
-          return $country !== '';
-        }),
+        'production_countries' => 
+        array_filter(
+          array_unique(
+            array_map(
+              function($company) { return $company['iso_3166_1']; },
+              $additionalData['production_countries']
+            )
+          ),
+          function ($country) { return $country !== ''; }
+        ),
         'has_female_director' => count(array_filter($additionalData['credits']['crew'], function ($crewMember) {
           return $crewMember['job'] === 'Director' && $crewMember['gender'] === 1;
         })) > 0,
@@ -77,11 +82,15 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'poster' => $posterUrl ?? ($additionalData['poster_path'] ? ('https://image.tmdb.org/t/p/w92' . $additionalData['poster_path']) : null),
         'language' => $additionalData['original_language'],
         'imdb_id' => $additionalData['imdb_id'] ?? $imdb_fallback,
-        'production_countries' => array_filter(array_unique(array_map(function($company) {
-          return $company['origin_country'];
-        }, $additionalData['production_companies'])), function ($country) {
-          return $country !== '';
-        }),
+        'production_countries' => array_filter(
+          array_unique(
+            array_map(
+              function($company) { return $company['iso_3166_1']; },
+              $additionalData['production_countries']
+            )
+          ),
+          function ($country) { return $country !== ''; }
+        ),
         'has_female_director' => count(array_filter($additionalData['created_by'], function ($crewMember) {
           return $crewMember['gender'] === 1;
         })) > 0,
