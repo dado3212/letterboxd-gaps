@@ -139,5 +139,7 @@ https://womenandhollywood.com/resources/statistics/
 - TMDb
 - Tippy - https://atomiks.github.io/tippyjs/
 - https://stephanwagner.me/coding/blog/create-world-map-charts-with-svgmap#svgMapDemoGDP | https://github.com/StephanWagner/svgMap?tab=readme-ov-file | https://www.cssscript.com/demo/interactive-svg-world-map/
+https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca
+svgMap.min.js.LICENSE.txt
 
 https://www.amcharts.com/demos/zooming-to-countries-map/

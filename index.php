@@ -138,10 +138,8 @@
 
         -->
         <div id="svgMap"></div>
-        <!-- <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.js"></script> -->
         <link href="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css" rel="stylesheet">
-        <script src="https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca"></script>
+        <script src="./svgMap.min.js"></script>
         <style>
             #svgMap {
                 width: 950px;
@@ -451,7 +449,7 @@
                     hideFlag: true,
                     initialZoom: 1,
                     minZoom: 1,
-                    noDataText: 'See all…',
+                    noDataText: data['name'] == 'Watched' ? 'Already seen' : 'No missing countries in list',
                     data: {
                         data: {
                             num_movies: {
