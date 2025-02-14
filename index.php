@@ -398,6 +398,7 @@
                 // Set up map
                 // If you're viewing your watched list, this is all countries you haven't seen
                 let movieCountData;
+                let watchedCountries = new Set();
                 if (data['name'] == 'Watched') {
                     movieCountData = {...allCountries};
                     movies.forEach(movie => {
@@ -411,7 +412,6 @@
                     });
                 } else {
                     // Get all of the countries that you've already seen from the watchlist
-                    let watchedCountries = new Set();
                     allData[0].movies.forEach(movie => {
                         if (movie.countries) {
                             movie.countries.forEach(country => {
@@ -449,7 +449,17 @@
                     hideFlag: true,
                     initialZoom: 1,
                     minZoom: 1,
-                    noDataText: data['name'] == 'Watched' ? 'Already seen' : 'No missing countries in list',
+                    noDataText: (country) => {
+                        if (data['name'] == 'Watched') {
+                            return 'Already seen';
+                        } else {
+                            if (watchedCountries.has(country)) {
+                                return 'Already seen';
+                            } else {
+                                return 'No movies in list';
+                            }
+                        }
+                    },
                     data: {
                         data: {
                             num_movies: {
@@ -472,10 +482,11 @@
                         e.preventDefault();
 
                         const clickedCountry = country.getAttribute('data-id');
-                        console.log(clickedCountry);
-
                         if (data['name'] == 'Watched') {
                             window.open(allCountries[clickedCountry]['url'], '_blank');
+                            return;
+                        }
+                        if (!(clickedCountry in movieCountData)) {
                             return;
                         }
 
@@ -483,6 +494,7 @@
                             document.querySelectorAll('.movie').forEach(poster => {
                                 poster.style.opacity = 1.0;
                             });
+                            clickedCountry = null;
                         } else {
                             currentSelectedCountry = clickedCountry;
                             document.querySelectorAll('.movie').forEach(poster => {

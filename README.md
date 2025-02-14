@@ -29,10 +29,12 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
 - Inlcude MySQL databases in this repo
+- Remove hover animation for list irrelevant options
+- Fix zoom hover CSS styling
 
 Stretch
 - Better animation for gender splits where the posters rearrange
-
+- Ditto for country selection
 
 **secret.php**
 ```
