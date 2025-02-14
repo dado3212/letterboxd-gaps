@@ -35,6 +35,7 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Header explaining the map
 - List of countries
 - List of languages
+- How to handle movie duplicates
 
 Stretch
 - Better animation for gender splits where the posters rearrange
