@@ -116,27 +116,10 @@
                 <div id="list-select"></div>
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
-                <button class="countries">Countries</button>
+                <button class="countries" onclick="countries()">Countries</button>
             </div>
         </div>
 
-        <!-- <div id="stats">
-            <div id="gender">
-                <div id="female"></div>
-                <div id="total"></div>
-            </div>
-            <div id="total">
-                <div id="numWatched"></div>
-            </div>
-            <div id="countries">
-                <div id="numWatched"></div>
-            </div>
-            <div id="language">
-                <div id="numWatched"></div>
-            </div>
-        </div>
-
-        -->
         <div id="svgMap"></div>
         <link href="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css" rel="stylesheet">
         <script src="./svgMap.min.js"></script>
@@ -144,6 +127,9 @@
             #svgMap {
                 width: 950px;
                 margin: 0 auto;
+
+                position: absolute;
+                left: -300vw;
             }
             .svgMap-map-wrapper {
                 background: #14181c;
@@ -362,6 +348,18 @@
                 showingFemaleDirectors = !showingFemaleDirectors;
             }
 
+            let isShowingCountries = false;
+            function countries() {
+                isShowingCountries = !isShowingCountries;
+                const svgMap = document.querySelector('#svgMap');
+                if (isShowingCountries) {
+                    svgMap.style.position = 'inherit';
+                } else {
+                    svgMap.style.position = 'absolute';
+                    svgMap.style.left = '-300vw';
+                }
+            }
+
             function transitionToAnalysis() {
                 // Fade out the imgs
                 // TODO: Offset them
@@ -386,9 +384,21 @@
             }
 
             let allData = [];
+            let diaryLists = new Set();
             let allCountries = {};
 
-            function swapList(data) {
+            function swapList(index) {
+                const data = allData[index];
+
+                const countryButton = document.querySelector('button.countries');
+                if (diaryLists.has(index)) {
+                    countryButton.disabled = true;
+                    countryButton.title = 'All diary movies have been watched, so there are no unseen countries in the list.';
+                } else {
+                    countryButton.disabled = false;
+                    countryButton.title = '';
+                }
+
                 console.log(data);
                 movies = data.movies;
 
@@ -486,15 +496,12 @@
                             window.open(allCountries[clickedCountry]['url'], '_blank');
                             return;
                         }
-                        if (!(clickedCountry in movieCountData)) {
-                            return;
-                        }
 
-                        if (clickedCountry == currentSelectedCountry) {
+                        if (clickedCountry == currentSelectedCountry || !(clickedCountry in movieCountData)) {
                             document.querySelectorAll('.movie').forEach(poster => {
                                 poster.style.opacity = 1.0;
                             });
-                            clickedCountry = null;
+                            currentSelectedCountry = null;
                         } else {
                             currentSelectedCountry = clickedCountry;
                             document.querySelectorAll('.movie').forEach(poster => {
@@ -696,6 +703,8 @@
                     `;
                     let dataIndex = 0;
                     allData = [];
+                    diaryLists = new Set();
+
                     // Two, the dropdown menu that unfolds
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].type == 'group') {
@@ -705,6 +714,9 @@
                             for (var j = 0; j < data[i].sublists.length; j++) {
                                 innerHTML += `<div data-list="${dataIndex}"><span class="name">${data[i].sublists[j].name}</span><span class="number">${data[i].sublists[j].movies.length}</span></div>`;
                                 allData.push(data[i].sublists[j]);
+                                if (data[i].name == 'Diary') {
+                                    diaryLists.add(dataIndex);
+                                }
                                 dataIndex += 1;
                             }
                             innerHTML += '</div></div>';
@@ -724,7 +736,7 @@
                         list.onclick = () => {
                             listSelect.classList.remove('opened');
                             selected.innerHTML = list.innerHTML;
-                            swapList(allData[Number(list.dataset.list)]);
+                            swapList(Number(list.dataset.list));
                         };
                     });
                     document.querySelectorAll('.dropdown .group').forEach(group => {
@@ -732,7 +744,7 @@
                             group.classList.toggle('opened');
                         };
                     });
-                    swapList(data[0]);
+                    swapList(0);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -753,8 +765,6 @@
 
                 tryToUpload(formData);
             }
-
-            transitionToAnalysis();
         </script>
     </body>
 </html>

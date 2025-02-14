@@ -31,6 +31,10 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Inlcude MySQL databases in this repo
 - Remove hover animation for list irrelevant options
 - Fix zoom hover CSS styling
+- Handle some sort of "watched" affordance for breaking down lists
+- Header explaining the map
+- List of countries
+- List of languages
 
 Stretch
 - Better animation for gender splits where the posters rearrange

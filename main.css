@@ -113,6 +113,10 @@
     letter-spacing: .075em;
     line-height: 12px;
 }
+.menu button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 .menu button:hover {
     background: #009d1a;
     color: #fff;
