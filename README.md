@@ -1,5 +1,5 @@
-# letterboxd-stats
-PHP website for calculating some Letterboxd stats
+# letterboxd-gaps
+PHP website for gaps in Letterboxd watching
 
 <img width="1501" alt="Screenshot 2025-01-04 at 5 00 18 PM" src="https://github.com/user-attachments/assets/57721a07-aada-42fd-b517-9cb962c24883" />
 
@@ -8,17 +8,7 @@ PHP website for calculating some Letterboxd stats
 Still very much WIP.
 
 TODO:
-- Put in username or drag-drop files (full .zip? watchlist? other?)
-Show
-- Most liked
-- Likes/time
-- Follower graph (3js?)
-- Follower recommendation
-- Languages
-- Countries
-
-SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDemoGDP, https://github.com/StephanWagner/svgMap?tab=readme-ov-file, https://www.cssscript.com/demo/interactive-svg-world-map/
-
+- Username support?
 - Loading bar for .zip drop too
 - Handle .zip uploading not showing new photos (and break dependency on reuploading formdata, jeez)
 - Handle .zip drop
@@ -31,7 +21,6 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Show some actual text of how to use the website
 - Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
-- Header explaining the map
 - List of languages
 - How to handle movie duplicates
 - Clicking off dropdown should auto-close it
@@ -141,18 +130,8 @@ document.querySelectorAll('.center img').forEach(img => {
 });
 ```
 
-## Previous work to city
+## Previous work to cite
 https://jamesbvaughan.com/movie-director-genders/
 https://github.com/GoodbyteCo/Directed-By-Women
 https://womenandhollywood.com/resources/statistics/
 
-
-## Thanks to
-- Letterboxd
-- TMDb
-- Tippy - https://atomiks.github.io/tippyjs/
-- https://stephanwagner.me/coding/blog/create-world-map-charts-with-svgmap#svgMapDemoGDP | https://github.com/StephanWagner/svgMap?tab=readme-ov-file | https://www.cssscript.com/demo/interactive-svg-world-map/
-https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca
-svgMap.min.js.LICENSE.txt
-
-https://www.amcharts.com/demos/zooming-to-countries-map/

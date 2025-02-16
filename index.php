@@ -119,6 +119,9 @@
                 <button class="countries" onclick="countries()">Countries</button>
             </div>
         </div>
+        <div class="made">
+           Made by Alex Beals | <a href="./thanks">Thanks</a> | <a href="https://github.com/dado3212/letterboxd-gaps" target="_blank">Github</a>
+        </div>
 
         <div id="countryInfo">
             <h2>Missing Countries</h2>
@@ -421,6 +424,7 @@
             }
 
             function transitionToAnalysis() {
+                document.querySelector('.made').style.display = 'none';
                 // Fade out the imgs
                 // TODO: Offset them
                 document.querySelectorAll('.center img').forEach(img => img.style.opacity = '0%');
@@ -439,7 +443,7 @@
                     setTimeout(() => {
                         document.querySelector('.center-wrapper').style.display = 'none';
                         document.querySelector('.nav').style.display = 'initial';
-                    }, 0);
+                    }, 0); // TODO: Reset this to 2 seconds, and add back in the CSS styling for fading too
                 }, 0); // takes 2s for the images to fade
             }
 

@@ -349,3 +349,21 @@ html.hover {
 #list-select .number {
   color: #575f6a;
 }
+.made {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    font-family: 'Graphik-Regular-Web', sans-serif;
+    font-size: 0.8em;
+
+    opacity: 0.8;
+
+    a {
+        color: #d8e0e8;
+        transition: 0.2s ease;
+    }
+
+    a:hover {
+        color: white;
+    }
+}
