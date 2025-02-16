@@ -485,6 +485,11 @@
                     });
                 }
 
+                if (Object.keys(movieCountData).length == 0) {
+                    countryButton.disabled = true;
+                    countryButton.title = 'No unseen countries in the list.';
+                }
+
                 const svg = document.getElementById('svgMap');
                 svg.innerHTML = '';
                 const svgObject = new svgMap({

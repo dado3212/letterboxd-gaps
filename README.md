@@ -29,12 +29,10 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Letterboxd attribution in the UI
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
-- Inlcude MySQL databases in this repo
 - Remove hover animation for list irrelevant options
 - Fix zoom hover CSS styling
 - Handle some sort of "watched" affordance for breaking down lists
 - Header explaining the map
-- List of countries
 - List of languages
 - How to handle movie duplicates
 - Clicking off dropdown should auto-close it
@@ -47,6 +45,8 @@ Stretch
 ```
 define('TMDB_API_KEY', '<key>');
 ```
+
+Use `CREATE_DBS.sql` to create the tables.
 
 https://github.com/keplerg/color-extract/blob/main/index.php
 
