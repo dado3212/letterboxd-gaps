@@ -9,6 +9,7 @@ ini_set('display_errors', 1);
 if (true) {
   header('Content-Type: application/json');
   echo json_encode([]);
+  return;
 }
 
 // From TMDB -> Letterboxd
@@ -174,6 +175,18 @@ foreach ($combined['countries'] as $country_code => $info) {
 }
 $sql = "REPLACE INTO countries
 (country_code, num_movies, url, full_name)
+VALUES " . implode(', ', $placeholders);
+$stmt = $PDO->prepare($sql);
+$stmt->execute($bindValues);
+
+$placeholders = [];
+$bindValues = [];
+foreach ($combined['languages'] as $language_code => $info) {
+  $placeholders[] = '(' . implode(',', array_fill(0, 4, '?')) . ')';
+  $bindValues = array_merge($bindValues, [$language_code, $info['count'], $info['url'], $info['full']]);
+}
+$sql = "REPLACE INTO languages
+(language_code, num_movies, url, full_name)
 VALUES " . implode(', ', $placeholders);
 $stmt = $PDO->prepare($sql);
 $stmt->execute($bindValues);

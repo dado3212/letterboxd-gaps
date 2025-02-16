@@ -198,10 +198,12 @@ function handleZip($file) {
       ];
     }
     $countries = getCountryData();
+    $languages = getLanguageData();
     header('Content-Type: application/json');
     echo json_encode([
       'movies' => $all_data,
       'countries' => $countries,
+      'languages' => $languages,
     ]);
     return true;
   } else {
@@ -224,6 +226,22 @@ function getCountryData() {
     ];
   }
   return $countries;
+}
+
+function getLanguageData() {
+  $PDO = getDatabase();
+  $stmt = $PDO->prepare("SELECT * FROM languages");
+  $stmt->execute();
+  $rawLanguages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $languages = [];
+  foreach ($rawLanguages as $rawLanguage) {
+    $languages[$rawLanguage['language_code']] = [
+      'num_movies' => $rawLanguage['num_movies'],
+      'url' => $rawLanguage['url'],
+      'full_name' => $rawLanguage['full_name'],
+    ];
+  }
+  return $languages;
 }
 
 // TODO: diary/reviews is slow because name/id isn't indexed

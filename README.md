@@ -15,15 +15,13 @@ TODO:
 - Actually show upload progress
 - Time estimates for uploading
 - Actually fix uploading
-- TMDB attribution in the UI
-- Letterboxd attribution in the UI
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
 - Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
-- List of languages
 - How to handle movie duplicates
 - Clicking off dropdown should auto-close it
+- Fix state memory around multiple interactions
 
 - Remove single CSV support, only support .zip
 - diary/reviews is slow because name/id isn't indexed
@@ -134,4 +132,4 @@ document.querySelectorAll('.center img').forEach(img => {
 https://jamesbvaughan.com/movie-director-genders/
 https://github.com/GoodbyteCo/Directed-By-Women
 https://womenandhollywood.com/resources/statistics/
-
+https://colorboxd.com/

@@ -117,11 +117,18 @@
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
                 <button class="countries" onclick="countries()">Countries</button>
+                <button class="languages" onclick="languages()">Languages</button>
             </div>
         </div>
         <div class="made">
            Made by Alex Beals | <a href="./thanks">Thanks</a> | <a href="https://github.com/dado3212/letterboxd-gaps" target="_blank">Github</a>
         </div>
+
+        <div id="languageInfo">
+            <h2>Missing Languages</h2>
+            <p></p>
+            <ol id="languageList"></ol>
+         </div>
 
         <div id="countryInfo">
             <h2>Missing Countries</h2>
@@ -129,20 +136,21 @@
             <div id="svgMap"></div>
             <ol id="countryList"></ol>
          </div>
+
         <link href="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css" rel="stylesheet">
         <script src="./svgMap.min.js"></script>
         <style>
-            #countryInfo {
+            #countryInfo, #languageInfo {
                 position: absolute;
                 left: -300vw;
 
                 text-align: center;
             }
-            #countryInfo h2 {
+            #countryInfo h2, #languageInfo h2 {
                 font-family: 'GraphikSemiBold';
                 margin: 10px;
             }
-            #countryInfo p {
+            #countryInfo p, #languageInfo p {
                 font-family: 'Graphik-Regular-Web';
                 max-width: 400px;
                 margin: 10px auto;
@@ -169,24 +177,34 @@
                 vertical-align: top;
                 margin-top: 10px;
             }
-            #countryList, #countryList a {
+            #languageList {
+                column-count: 4;
+                display: inline-block;
+                overflow: scroll;
+                text-align: left;
+                max-height: 29em;
+                margin-left: 10px;
+                vertical-align: top;
+                margin-top: 10px;
+            }
+            #countryList, #countryList a, #languageList, #languageList a {
                 color: inherit;
                 text-decoration: none;
             }
-            #countryList a {
+            #countryList a, #languageList a {
                 color: #9ab;
                 cursor: pointer;
                 font-size: 14px;
 
                 font-family: Graphik-Regular-Web, sans-serif;
             }
-            #countryList a:hover {
+            #countryList a:hover, #languageList a:hover {
                 color: #def;
             }
-            #countryList a span {
+            #countryList a span, #languageList a span {
                 color: #678;
             }
-            #countryList li {
+            #countryList li, #languageList li {
                 margin: 3px 0;
             }
             ol {
@@ -423,6 +441,17 @@
                 }
             }
 
+            let isShowingLanguages = false;
+            function languages() {
+                isShowingLanguages = !isShowingLanguages;
+                const languageInfo = document.querySelector('#languageInfo');
+                if (isShowingLanguages) {
+                    languageInfo.style.position = 'inherit';
+                } else {
+                    languageInfo.style.position = 'absolute';
+                }
+            }
+
             function transitionToAnalysis() {
                 document.querySelector('.made').style.display = 'none';
                 // Fade out the imgs
@@ -450,6 +479,7 @@
             let allData = [];
             let diaryLists = new Set();
             let allCountries = {};
+            let allLanguages = {};
 
             function swapList(index) {
                 const data = allData[index];
@@ -457,13 +487,21 @@
                 const countryButton = document.querySelector('button.countries');
                 if (diaryLists.has(index)) {
                     countryButton.disabled = true;
-                    countryButton.title = 'All diary movies have been watched, so there are no unseen countries in the list.';
+                    countryButton.title = 'All diary movies have been watched, so there are no countries you haven\'t seen movies from.';
                 } else {
                     countryButton.disabled = false;
                     countryButton.title = '';
                 }
 
-                console.log(data);
+                const languageButton = document.querySelector('button.languages');
+                if (diaryLists.has(index)) {
+                    languageButton.disabled = true;
+                    languageButton.title = 'All diary movies have been watched, so there are no languages you haven\'t seen movies in.';
+                } else {
+                    languageButton.disabled = false;
+                    languageButton.title = '';
+                }
+
                 movies = data.movies;
 
                 const container = document.getElementById('movies');
@@ -472,9 +510,12 @@
                 // Set up map
                 // If you're viewing your watched list, this is all countries you haven't seen
                 let movieCountData;
+                let movieLanguageCountData;
                 let watchedCountries = new Set();
+                let watchedLanguages = new Set();
                 if (data['name'] == 'Watched') {
                     movieCountData = {...allCountries};
+                    movieLanguageCountData = {...allLanguages};
                     movies.forEach(movie => {
                         if (movie.countries) {
                             movie.countries.forEach(country => {
@@ -483,18 +524,25 @@
                                 }
                             });
                         }
+                        if (movie.language in movieLanguageCountData) {
+                            delete movieLanguageCountData[movie.language];
+                        }
                     });
                 } else {
-                    // Get all of the countries that you've already seen from the watchlist
+                    // Get all of the countries/languages that you've already seen from the watchlist
                     allData[0].movies.forEach(movie => {
                         if (movie.countries) {
                             movie.countries.forEach(country => {
                                 watchedCountries.add(country);
                             });
                         }
+                        if (movie.language) {
+                            watchedLanguages.add(movie.language);
+                        }
                     });
-                    // Filter your current list to countries you haven't seen. 
+                    // Filter your current list to countries/languages you haven't seen. 
                     movieCountData = {};
+                    movieLanguageCountData = {};
                     movies.forEach(movie => {
                         if (movie.countries) {
                             movie.countries.forEach(country => {
@@ -510,12 +558,29 @@
                                 }
                             });
                         }
+                        if (movie.language) {
+                            if (watchedLanguages.has(movie.language)) {
+                                return;
+                            }
+                            if (movie.language in movieLanguageCountData) {
+                                movieLanguageCountData[movie.language]['num_movies'] += 1;
+                            } else {
+                                movieLanguageCountData[movie.language] = {
+                                    'num_movies': 1
+                                };
+                            }
+                        }
                     });
                 }
 
                 if (Object.keys(movieCountData).length == 0) {
                     countryButton.disabled = true;
-                    countryButton.title = 'No unseen countries in the list.';
+                    countryButton.title = 'This list has no countries you haven\'t seen movies from.';
+                }
+
+                if (Object.keys(movieLanguageCountData).length == 0) {
+                    languageButton.disabled = true;
+                    languageButton.title = 'This list has no languages you haven\'t seen movies in.';
                 }
 
                 const svg = document.getElementById('svgMap');
@@ -557,16 +622,15 @@
                 movieCountData = Object.fromEntries(
                     Object.entries(movieCountData).sort(([, a], [, b]) => b.num_movies - a.num_movies)
                 );
-                const maxMovies = Math.max(...Object.values(movieCountData).map(c => c.num_movies));
 
                 if (data['name'] == 'Watched') {
                     document.querySelector('#countryInfo p').innerHTML = `
-                    You haven't seen any movies from these countries.
+                    You haven't seen any movies from these countries.<br />
                     Clicking a country on the map or in the list on the right will take
                     you to a full list of movies from that country. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#countryInfo p').innerHTML = `
-                    Some movies in this list are from countries you've never seen anything from.
+                    Some movies in this list are from countries you've never seen anything from.<br />
                     Clicking a country on the map or in the list on the right will highlight
                     the movies from that country.`;
                 }
@@ -616,10 +680,69 @@
                     });
                 }
 
+                // Language setup
+                const languageList = document.querySelector('#languageList');
+                languageList.innerHTML = '';
+                movieLanguageCountData = Object.fromEntries(
+                    Object.entries(movieLanguageCountData).sort(([, a], [, b]) => b.num_movies - a.num_movies)
+                );
+
+                if (data['name'] == 'Watched') {
+                    document.querySelector('#languageInfo p').innerHTML = `
+                    You haven't seen any movies in these languages.<br />
+                    Clicking a language in the list on the right will take
+                    you to a full list of movies in that language. Add some to your watchlist!`;
+                } else {
+                    document.querySelector('#languageInfo p').innerHTML = `
+                    Some movies in this list are in languages you've never seen anything in.<br />
+                    Clicking a language in the list on the right will highlight
+                    the movies in that language.`;
+                }
+
+                let currentlySelectedLanguage = null;
+                clickLanguage = (clickedLanguage) => {
+                    if (data['name'] == 'Watched') {
+                        window.open(allLanguages[clickedLanguage]['url'], '_blank');
+                        return;
+                    }
+
+                    if (clickedLanguage == currentlySelectedLanguage || !(clickedLanguage in movieLanguageCountData)) {
+                        document.querySelectorAll('.movie').forEach(poster => {
+                            poster.style.opacity = 1.0;
+                        });
+                        currentlySelectedLanguage = null;
+                    } else {
+                        currentlySelectedLanguage = clickedLanguage;
+                        document.querySelectorAll('.movie').forEach(poster => {
+                            const dataLanguage = poster.getAttribute('data-language');
+                            if (dataLanguage == clickedLanguage) {
+                                poster.style.opacity = 1.0;
+                            } else {
+                                poster.style.opacity = 0.2;
+                            }
+                        });
+                    }
+                };
+
+                for (country in movieLanguageCountData) {
+                    if (country in allLanguages) {
+                        languageList.innerHTML += `<li>
+                            <a onclick="clickLanguage('${country}');">${allLanguages[country]['full_name']}
+                                <span>${movieLanguageCountData[country].num_movies.toLocaleString()}</span>
+                            </a>
+                        </li>`;
+                    }
+                }
+
                 // Clear country UI
                 isShowingCountries = false;
                 const countryInfo = document.querySelector('#countryInfo');
                 countryInfo.style.position = 'absolute';
+
+                // Clear language UI
+                isShowingLanguages = false;
+                const languageInfo = document.querySelector('#languageInfo');
+                languageInfo.style.position = 'absolute';
 
                 // Clear gender selector
                 const numFilter = document.querySelector('#numMovies .filter');
@@ -792,9 +915,8 @@
                     let data = JSON.parse(rawData);
                     // This is a .zip with multiple movies
                     allCountries = data.countries;
+                    allLanguages = data.languages;
                     data = data.movies;
-                    console.log(allCountries);
-                    console.log(data);
                     // Set up the list selector, which is composed of two pieces
                     const listSelect = document.getElementById('list-select');
                     listSelect.innerHTML = '';
