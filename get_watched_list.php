@@ -220,6 +220,7 @@ function getCountryData() {
     $countries[$rawCountry['country_code']] = [
       'num_movies' => $rawCountry['num_movies'],
       'url' => $rawCountry['url'],
+      'full_name' => $rawCountry['full_name'],
     ];
   }
   return $countries;

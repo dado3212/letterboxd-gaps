@@ -42,7 +42,7 @@ $mapping = [
     'United States of America' => 'USA',
     'Holy See' => 'Vatican City',
     'St. Vincent and the Grenadines' => 'Saint Vincent and the Grenadines',
-    'Venezuela' => 'Bolivarian Republic of Venezuela',
+    // 'Venezuela' => 'Bolivarian Republic of Venezuela',
     'Wallis and Futuna Islands' => 'Wallis and Futuna',
     'Zaire' => 'Democratic Republic of Congo',
   ],
@@ -170,11 +170,11 @@ $PDO = getDatabase();
 $placeholders = [];
 $bindValues = [];
 foreach ($combined['countries'] as $country_code => $info) {
-  $placeholders[] = '(' . implode(',', array_fill(0, 3, '?')) . ')';
-  $bindValues = array_merge($bindValues, [$country_code, $info['count'], $info['url']]);
+  $placeholders[] = '(' . implode(',', array_fill(0, 4, '?')) . ')';
+  $bindValues = array_merge($bindValues, [$country_code, $info['count'], $info['url'], $info['full']]);
 }
 $sql = "REPLACE INTO countries
-(country_code, num_movies, url)
+(country_code, num_movies, url, full_name)
 VALUES " . implode(', ', $placeholders);
 $stmt = $PDO->prepare($sql);
 $stmt->execute($bindValues);

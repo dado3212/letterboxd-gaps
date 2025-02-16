@@ -24,6 +24,7 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Handle .zip drop
 - Actually show upload progress
 - Time estimates for uploading
+- Actually fix uploading
 - TMDB attribution in the UI
 - Letterboxd attribution in the UI
 - Have a button to select .zip instead of just drag/drop
@@ -36,6 +37,7 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - List of countries
 - List of languages
 - How to handle movie duplicates
+- Clicking off dropdown should auto-close it
 
 Stretch
 - Better animation for gender splits where the posters rearrange

@@ -120,17 +120,53 @@
             </div>
         </div>
 
-        <div id="svgMap"></div>
+        <div id="countryInfo">
+            <div id="svgMap"></div>
+            <ol id="countryList"></ol>
+         </div>
         <link href="https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css" rel="stylesheet">
         <script src="./svgMap.min.js"></script>
         <style>
+            #countryInfo {
+                position: absolute;
+                left: -300vw;
+
+                text-align: center;
+            }
+
             #svgMap {
                 width: 950px;
                 margin: 0 auto;
 
-                position: absolute;
-                left: -300vw;
+                display: inline-block;
             }
+            #countryList {
+                width: 300px;
+                display: inline-block;
+                overflow: scroll;
+                text-align: left;
+                max-height: 29em;
+                margin-left: 10px;
+                vertical-align: top;
+                margin-top: 10px;
+            }
+            #countryList, #countryList a {
+                color: inherit;
+                text-decoration: none;
+            }
+            #countryList a {
+                cursor: pointer;
+            }
+            #countryList a:hover {
+                text-decoration: underline;
+            }
+            #countryList a span:before {
+                content: " - ";
+            }
+            #countryList li {
+                margin: 3px 0;
+            }
+
             .svgMap-map-wrapper {
                 background: #14181c;
                 border: 1px solid #303840;
@@ -351,12 +387,12 @@
             let isShowingCountries = false;
             function countries() {
                 isShowingCountries = !isShowingCountries;
-                const svgMap = document.querySelector('#svgMap');
+                const countryInfo = document.querySelector('#countryInfo');
                 if (isShowingCountries) {
-                    svgMap.style.position = 'inherit';
+                    countryInfo.style.position = 'inherit';
                 } else {
-                    svgMap.style.position = 'absolute';
-                    svgMap.style.left = '-300vw';
+                    countryInfo.style.position = 'absolute';
+                    countryInfo.style.left = '-300vw';
                 }
             }
 
@@ -440,7 +476,7 @@
                                 if (country in movieCountData) {
                                     movieCountData[country]['num_movies'] += 1;
                                 } else {
-                                    movieCountData[country]= {
+                                    movieCountData[country] = {
                                         'num_movies': 1
                                     };
                                 }
@@ -451,7 +487,7 @@
 
                 const svg = document.getElementById('svgMap');
                 svg.innerHTML = '';
-                new svgMap({
+                const svgObject = new svgMap({
                     targetElementID: 'svgMap',
                     colorMin: '#007733',
                     colorMax: '#00E054',
@@ -483,8 +519,47 @@
                     },
                 });
 
-                var svgCountries = svg.querySelector('.svgMap-map-image').querySelectorAll('.svgMap-country');
+                const countryList = document.querySelector('#countryList');
+                countryList.innerHTML = '';
+                movieCountData = Object.fromEntries(
+                    Object.entries(movieCountData).sort(([, a], [, b]) => b.num_movies - a.num_movies)
+                );
+                const maxMovies = Math.max(...Object.values(movieCountData).map(c => c.num_movies));
+
                 let currentSelectedCountry = null;
+                clickCountry = (clickedCountry) => {
+                    if (data['name'] == 'Watched') {
+                        window.open(allCountries[clickedCountry]['url'], '_blank');
+                        return;
+                    }
+
+                    if (clickedCountry == currentSelectedCountry || !(clickedCountry in movieCountData)) {
+                        document.querySelectorAll('.movie').forEach(poster => {
+                            poster.style.opacity = 1.0;
+                        });
+                        currentSelectedCountry = null;
+                    } else {
+                        currentSelectedCountry = clickedCountry;
+                        document.querySelectorAll('.movie').forEach(poster => {
+                            const dataCountries = poster.getAttribute('data-countries');
+                            if (dataCountries && dataCountries.includes(clickedCountry)) {
+                                poster.style.opacity = 1.0;
+                            } else {
+                                poster.style.opacity = 0.2;
+                            }
+                        });
+                    }
+                };
+
+                for (country in movieCountData) {
+                    countryList.innerHTML += `<li style="color: ${svgObject.getColor('#00E054', '#007733', movieCountData[country].num_movies / maxMovies)}">
+                        <a onclick="clickCountry('${country}');">${allCountries[country]['full_name']}
+                            <span>${movieCountData[country].num_movies.toLocaleString()}</span>
+                        </a>
+                    </li>`;
+                }
+
+                var svgCountries = svg.querySelector('.svgMap-map-image').querySelectorAll('.svgMap-country');
                 for (var i = 0; i < svgCountries.length; i++) {
                     const country = svgCountries[i];
 
@@ -492,27 +567,7 @@
                         e.preventDefault();
 
                         const clickedCountry = country.getAttribute('data-id');
-                        if (data['name'] == 'Watched') {
-                            window.open(allCountries[clickedCountry]['url'], '_blank');
-                            return;
-                        }
-
-                        if (clickedCountry == currentSelectedCountry || !(clickedCountry in movieCountData)) {
-                            document.querySelectorAll('.movie').forEach(poster => {
-                                poster.style.opacity = 1.0;
-                            });
-                            currentSelectedCountry = null;
-                        } else {
-                            currentSelectedCountry = clickedCountry;
-                            document.querySelectorAll('.movie').forEach(poster => {
-                                const dataCountries = poster.getAttribute('data-countries');
-                                if (dataCountries && dataCountries.includes(clickedCountry)) {
-                                    poster.style.opacity = 1.0;
-                                } else {
-                                    poster.style.opacity = 0.2;
-                                }
-                            });
-                        }
+                        clickCountry(clickedCountry);
                     });
                 }
 
