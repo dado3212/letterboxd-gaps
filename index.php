@@ -141,7 +141,8 @@
                 display: inline-block;
             }
             #countryList {
-                width: 300px;
+                width: 200px;
+                max-width: 300px;
                 display: inline-block;
                 overflow: scroll;
                 text-align: left;
@@ -263,7 +264,7 @@
                 width: 30px
             }
 
-            .svgMap-control-button.svgMap-zoom-button:after,.svgMap-control-button.svgMap-zoom-button:before {
+            .svgMap-map-wrapper .svgMap-control-button.svgMap-zoom-button:after, .svgMap-map-wrapper .svgMap-control-button.svgMap-zoom-button:before {
                 background: #9ab;
                 content: "";
                 left: 50%;
@@ -271,6 +272,9 @@
                 top: 50%;
                 transform: translate(-50%,-50%);
                 transition: background-color .2s
+            }
+            .svgMap-map-wrapper .svgMap-control-button.svgMap-zoom-button:hover:after, .svgMap-map-wrapper .svgMap-control-button.svgMap-zoom-button:hover:before {
+                background: #fff;
             }
 
             .svgMap-control-button.svgMap-zoom-button:before {

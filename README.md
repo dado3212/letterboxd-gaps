@@ -30,12 +30,16 @@ SVG map - https://stephanwagner.me/create-world-map-charts-with-svgmap#svgMapDem
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
 - Remove hover animation for list irrelevant options
-- Fix zoom hover CSS styling
 - Handle some sort of "watched" affordance for breaking down lists
 - Header explaining the map
 - List of languages
 - How to handle movie duplicates
 - Clicking off dropdown should auto-close it
+
+- Remove single CSV support, only support .zip
+- diary/reviews is slow because name/id isn't indexed
+- Offset images
+- Set up a cron job to run scrape_countries sporadically
 
 Stretch
 - Better animation for gender splits where the posters rearrange

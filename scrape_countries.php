@@ -121,7 +121,6 @@ foreach ($languageItems as $languageItem) {
 
 $tmdbData = getLanguagesAndCountries();
 
-// TODO: Upload this to the server so that this is only run sparingly
 $combined = [
   'countries' => [],
   'languages' => [],
