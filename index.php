@@ -121,6 +121,8 @@
         </div>
 
         <div id="countryInfo">
+            <h2>Missing Countries</h2>
+            <p></p>
             <div id="svgMap"></div>
             <ol id="countryList"></ol>
          </div>
@@ -132,6 +134,19 @@
                 left: -300vw;
 
                 text-align: center;
+            }
+            #countryInfo h2 {
+                font-family: 'GraphikSemiBold';
+                margin: 10px;
+            }
+            #countryInfo p {
+                font-family: 'Graphik-Regular-Web';
+                max-width: 400px;
+                margin: 10px auto;
+                color: #9ab;
+                font-style: italic;
+                font-size: 0.9em;
+                line-height: 1.2em;
             }
 
             #svgMap {
@@ -156,18 +171,24 @@
                 text-decoration: none;
             }
             #countryList a {
+                color: #9ab;
                 cursor: pointer;
+                font-size: 14px;
+
+                font-family: Graphik-Regular-Web, sans-serif;
             }
             #countryList a:hover {
-                text-decoration: underline;
+                color: #def;
             }
-            #countryList a span:before {
-                content: " - ";
+            #countryList a span {
+                color: #678;
             }
             #countryList li {
                 margin: 3px 0;
             }
-
+            ol {
+                list-style: none;
+            }
             .svgMap-map-wrapper {
                 background: #14181c;
                 border: 1px solid #303840;
@@ -396,7 +417,6 @@
                     countryInfo.style.position = 'inherit';
                 } else {
                     countryInfo.style.position = 'absolute';
-                    countryInfo.style.left = '-300vw';
                 }
             }
 
@@ -535,6 +555,18 @@
                 );
                 const maxMovies = Math.max(...Object.values(movieCountData).map(c => c.num_movies));
 
+                if (data['name'] == 'Watched') {
+                    document.querySelector('#countryInfo p').innerHTML = `
+                    You haven't seen any movies from these countries.
+                    Clicking a country on the map or in the list on the right will take
+                    you to a full list of movies from that country. Add some to your watchlist!`;
+                } else {
+                    document.querySelector('#countryInfo p').innerHTML = `
+                    Some movies in this list are from countries you've never seen anything from.
+                    Clicking a country on the map or in the list on the right will highlight
+                    the movies from that country.`;
+                }
+
                 let currentSelectedCountry = null;
                 clickCountry = (clickedCountry) => {
                     if (data['name'] == 'Watched') {
@@ -561,7 +593,7 @@
                 };
 
                 for (country in movieCountData) {
-                    countryList.innerHTML += `<li style="color: ${svgObject.getColor('#00E054', '#007733', movieCountData[country].num_movies / maxMovies)}">
+                    countryList.innerHTML += `<li>
                         <a onclick="clickCountry('${country}');">${allCountries[country]['full_name']}
                             <span>${movieCountData[country].num_movies.toLocaleString()}</span>
                         </a>
@@ -579,6 +611,11 @@
                         clickCountry(clickedCountry);
                     });
                 }
+
+                // Clear country UI
+                isShowingCountries = false;
+                const countryInfo = document.querySelector('#countryInfo');
+                countryInfo.style.position = 'absolute';
 
                 // Clear gender selector
                 const numFilter = document.querySelector('#numMovies .filter');

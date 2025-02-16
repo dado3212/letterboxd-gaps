@@ -13,6 +13,12 @@
     font-display: block;
     src: url('./fonts/Graphik-Semibold-Web.woff') format('woff');
 }
+@font-face {
+    font-family: Graphik-Regular-Web;
+    font-style: normal;
+    font-weight: 400;
+    src: url('./fonts/Graphik-Regular-Web.woff') format('woff');
+}
 .center-wrapper {
     width: 100%;
     height: 100%;
