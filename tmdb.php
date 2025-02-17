@@ -13,6 +13,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
 
   $body = $xpath->query('//body')->item(0);
   preg_match("/.org\/(.*?)\/(\d+)\//", $xpath->query('//a[text()="TMDb"]')->item(0)->getAttribute('href'), $matches); // Finds <a> tags with text content "TMDb"
+  // TODO: This can throw, not sure which for
   $tmdbType = $matches[1];
   $tmdbId = (int)$matches[2];
 

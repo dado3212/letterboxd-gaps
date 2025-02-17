@@ -65,19 +65,34 @@ function rgbToHsl($r, $g, $b) {
   ];
 }
 
+// TODO: Currently unused, but we should use this to filter to the IDs that the current
+// user is actually trying to use (depending on site traffic this may be moot).
+if (!isset($argv[1])) {
+  return;
+}
+
 // Get up to 50 that aren't being worked on right now
 $PDO = getDatabase();
 $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status = 'pending' LIMIT 50";
 $stmt = $PDO->prepare($sql);
 $stmt->execute();
 $movies = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$PDO = null;
 
 if (empty($movies)) {
   echo 'finished';
   exit;
 }
 
+// Otherwise mark the ones you selected as processing so that another script doesn't try
+$ids = [];
+foreach ($movies as $movie) {
+  $ids[] = $movie['id'];
+}
+$placeholders = implode(',', array_fill(0, count($ids), '?'));
+$stmt = $PDO->prepare("UPDATE letterboxd.movies SET status = 'processing' WHERE id IN ($placeholders)");
+$stmt->execute($ids);
+
+// Try and download
 $results = []; // Store results from all threads
 $pipes = [];   // For interprocess communication
 foreach ($movies as $movie) {
@@ -93,9 +108,13 @@ foreach ($movies as $movie) {
     $result['id'] = $movie['id'];
 
     $poster = $result['poster'];
-    $rgb = getDominantColor($poster);
-    $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
-    $result['primary_color'] = json_encode($hsl);
+    if ($poster !== null) {
+      $rgb = getDominantColor($poster);
+      $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+      $result['primary_color'] = json_encode($hsl);
+    } else {
+      $result['primary_color'] = null;
+    }
 
     fwrite($pipe[1], json_encode($result)); // Send result to the parent
     fclose($pipe[1]);

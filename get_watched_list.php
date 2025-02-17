@@ -7,16 +7,7 @@ ini_set('display_errors', 1);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
 
-  // TODO: Remove single CSV support, only support .zip
-  if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'csv') {
-    $error = handleWatchlist($file);
-    if ($error === null) {
-      http_response_code(400);
-      echo 'The CSV file is empty or invalid.';
-      exit;
-    }
-    exit;
-  } else if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'zip') {
+  if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'zip' && str_starts_with($file['name'], 'letterboxd')) {
     handleZip($file);
   } else {
     http_response_code(400);
@@ -28,36 +19,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   echo 'No file uploaded.';
 }
 
-function parseCsv($source, $isStream = false) {
-  $lines = [];
+function handleZip($file) {
+  // Open the .zip file directly from the uploaded file stream
+  $zip = new ZipArchive();
+  if ($zip->open($file['tmp_name']) === true) {
+    // Iterate over files in the .zip
+    $files = [];
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+      $fileName = $zip->getNameIndex($i);
+      $fileContent = $zip->getFromIndex($i);
 
-  if ($isStream) {
-    // Source is a stream (e.g., from fopen)
-    while (($line = fgetcsv($source)) !== false) {
-      $lines[] = $line;
+      // Store file data in an associative array
+      $files[] = [
+        'name' => $fileName,
+        'content' => $fileContent,
+      ];
     }
+    $zip->close();
+
+    // Process the extracted files in memory
+    $all_data = [];
+    $diary = [];
+    $lists = [];
+    $all_new_ids = [];
+    $to_upload = [];
+    foreach ($files as $file) {
+      /*
+        Handle
+        watched.csv 
+        diary.csv
+        watchlist.csv
+        lists/<whatever>
+      */
+      $result = null;
+      if (str_starts_with($file['name'], 'lists/')) {
+        $result = processCsvContent($file['content']);
+        $lists[] = $result;
+      } else if ($file['name'] === 'diary.csv') {
+        $result = processCsvContent($file['content']);
+        // Split by year
+        $result['name'] = 'All Time';
+        $diary[] = $result;
+
+        $years = [];
+        foreach ($result['movies'] as $movie) {
+          $watched_year = $movie['watched_year'];
+          if (array_key_exists($watched_year, $years)) {
+            $years[$watched_year][] = $movie;
+          } else {
+            $years[$watched_year] = [$movie];
+          }
+        }
+        krsort($years);
+        foreach ($years as $year => $movies) {
+          $diary[] = [
+            'movies' => $movies,
+            'name' => $year
+          ];
+        }
+      } else if ($file['name'] === 'watched.csv') {
+        $result = processCsvContent($file['content'], null, 'Watched');
+        $all_data[] = $result;
+      } else if ($file['name'] === 'watchlist.csv') {
+        $result = processCsvContent($file['content'], null, 'Watchlist');
+        $all_data[] = $result;
+      }
+      if ($result !== null) {
+        foreach ($result['new_ids'] ?? [] as $i) {
+          $all_new_ids[$i] = 1;
+        }
+        foreach ($result['to_upload'] ?? [] as $u) {
+          $to_upload[$u[1] . '-' . $u[2]] = $u;
+        }
+      }
+    }
+    if (count($lists) > 0) {
+      $all_data[] = [
+        'name' => 'Lists',
+        'type' => 'group',
+        'sublists' => $lists,
+      ];
+    }
+    if (count($diary) > 0) {
+      $all_data[] = [
+        'name' => 'Diary',
+        'type' => 'group',
+        'sublists' => $diary,
+      ];
+    }
+    $countries = getCountryData();
+    $languages = getLanguageData();
+    $upload_id = uploadData($all_new_ids, $to_upload);
+    header('Content-Type: application/json');
+    echo json_encode([
+      'movies' => $all_data,
+      'countries' => $countries,
+      'languages' => $languages,
+      'upload_id' => $upload_id,
+      'should_upload' => count($to_upload) > 0,
+    ]);
+    return true;
   } else {
-    // Source is a string
-    $lines = array_map('str_getcsv', explode("\n", $source));
+    http_response_code(500);
+    echo 'Failed to open .zip file.';
   }
+}
+
+function processCsvContent($content, $type = null, $listName = null) {
+  // Source is a string
+  $lines = array_map('str_getcsv', explode("\n", $content));
 
   // Separate headers and rows
   $headers = array_shift($lines);
 
   if ($headers === false) {
-    return [null, null]; // Malformed CSV
-  }
-
-  return [$headers, $lines];
-}
-
-function processCsvContent($content, $type = null, $listName = null) {
-  [$headers, $lines] = $content;
-
-  if ($headers === null) {
     return null; // Malformed CSV
   }
 
+  // Get the proper headers and type
   if ($type === null) {
     // Determine type based on headers
     if ($headers === ['Date', 'Name', 'Year', 'Letterboxd URI']) {
@@ -98,120 +177,48 @@ function processCsvContent($content, $type = null, $listName = null) {
   return handleMovies($data, $type, $listName);
 }
 
-function handleWatchlist($file) {
-  if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
-    [$headers, $lines] = parseCsv($handle, true);
-    fclose($handle);
+function uploadData($allNewIDs, $toUpload) {
+  $PDO = getDatabase();
 
-    if ($headers === null) {
-      return null; // Malformed CSV
+  $allNewIDs = array_keys($allNewIDs);
+  if (count($toUpload) > 0) {
+    $placeholders = [];
+    $bindValues = [];
+    foreach ($toUpload as $_ => $info) {
+      $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
+      $bindValues = array_merge($bindValues, $info);
     }
 
-    // Delegate to processCsvContent for type detection and processing
-    header('Content-Type: application/json');
-    echo json_encode(processCsvContent([$headers, $lines]));
-    return true;
+    $sql = "INSERT INTO movies
+    (letterboxd_url, movie_name, `year`)
+    VALUES " . implode(', ', $placeholders);
+    $stmt = $PDO->prepare($sql);
+    $stmt->execute($bindValues);
+
+    // Keep track of all of the rows that we're now processing
+    $first_id = $PDO->lastInsertId();
+    // Assume they're all sequential?
+    for ($i = 0; $i < count($toUpload); $i++) {
+      $allNewIDs[] = $first_id + $i;
+    }
   }
 
-  return null;
-}
+  // If any of the other IDs
+  $upload_id = null;
+  if (!empty($allNewIDs)) {
+    $sql = "INSERT INTO upload_tracking
+    (uploaded)
+    VALUES (?)";
+    $stmt = $PDO->prepare($sql);
+    $stmt->execute([json_encode($allNewIDs)]);
 
-function handleZip($file) {
-  // Open the .zip file directly from the uploaded file stream
-  $zip = new ZipArchive();
-  if ($zip->open($file['tmp_name']) === true) {
-    // Iterate over files in the .zip
-    $files = [];
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-      $fileName = $zip->getNameIndex($i);
-      $fileContent = $zip->getFromIndex($i);
-
-      // Store file data in an associative array
-      $files[] = [
-        'name' => $fileName,
-        'content' => $fileContent,
-      ];
-    }
-    $zip->close();
-
-    // Process the extracted files in memory
-    $all_data = [];
-    $diary = [];
-    $lists = [];
-    foreach ($files as $file) {
-      /*
-        Handle
-        watched.csv 
-        diary.csv
-        watchlist.csv
-        lists/<whatever>
-      */
-      if (str_starts_with($file['name'], 'lists/')) {
-        $content = parseCsv($file['content']);
-        $result = processCsvContent($content);
-        $lists[] = $result;
-      } else if ($file['name'] === 'diary.csv') {
-        $content = parseCsv($file['content']);
-        $result = processCsvContent($content);
-        // Split by year
-        $result['name'] = 'All Time';
-        $diary[] = $result;
-
-        $years = [];
-        foreach ($result['movies'] as $movie) {
-          $watched_year = $movie['watched_year'];
-          if (array_key_exists($watched_year, $years)) {
-            $years[$watched_year][] = $movie;
-          } else {
-            $years[$watched_year] = [$movie];
-          }
-        }
-        krsort($years);
-        foreach ($years as $year => $movies) {
-          $diary[] = [
-            'movies' => $movies,
-            'name' => $year
-          ];
-        }
-      } else if ($file['name'] === 'watched.csv') {
-        $content = parseCsv($file['content']);
-        $result = processCsvContent($content, null, 'Watched');
-        $all_data[] = $result;
-      } else if ($file['name'] === 'watchlist.csv') {
-        $content = parseCsv($file['content']);
-        $result = processCsvContent($content, null, 'Watchlist');
-        $all_data[] = $result;
-      }
-    }
-    if (count($lists) > 0) {
-      $all_data[] = [
-        'name' => 'Lists',
-        'type' => 'group',
-        'sublists' => $lists,
-      ];
-    }
-    if (count($diary) > 0) {
-      $all_data[] = [
-        'name' => 'Diary',
-        'type' => 'group',
-        'sublists' => $diary,
-      ];
-    }
-    $countries = getCountryData();
-    $languages = getLanguageData();
-    header('Content-Type: application/json');
-    echo json_encode([
-      'movies' => $all_data,
-      'countries' => $countries,
-      'languages' => $languages,
-    ]);
-    return true;
-  } else {
-    http_response_code(500);
-    echo 'Failed to open .zip file.';
+    $upload_id = $PDO->lastInsertId();
   }
+
+  return $upload_id;
 }
 
+// Gets the cached country data (updated daily by cronjob)
 function getCountryData() {
   $PDO = getDatabase();
   $stmt = $PDO->prepare("SELECT * FROM countries");
@@ -228,6 +235,7 @@ function getCountryData() {
   return $countries;
 }
 
+// Gets the cached country data (updated daily by cronjob)
 function getLanguageData() {
   $PDO = getDatabase();
   $stmt = $PDO->prepare("SELECT * FROM languages");
@@ -244,11 +252,10 @@ function getLanguageData() {
   return $languages;
 }
 
-// TODO: diary/reviews is slow because name/id isn't indexed
 // $type = watchlist, diary, reviews, list
 function handleMovies($watchlistMovies, $type, $list_name = null) {
   if (count($watchlistMovies) === 0) {
-    return ['movies' => [], 'upload_id' => null, 'upload_count' => 0];
+    return ['movies' => [], 'new_ids' => null, 'to_upload' => null];
   }
 
   $color_sorting = function ($a, $b) {
@@ -257,13 +264,8 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
   };
 
-  // $watchlistMovies = array_slice($watchlistMovies, 0, 1);
-
-  // We have the link to the review, not to the movie. Don't try and process
-  // these and upload them, because it's expensive to scrape. We'll do best
-  // effort based on the name + year combination. For the most part this should
-  // only be hit as part of the .zip upload, so these should be uploaded by 
-  // watched, making this ignorable
+  // These are separately handled because we only have the link to the review,
+  // not to the movie. Don't try and upload any as it will be handled by 'watched'.
   if ($type == 'diary' || $type == 'reviews') {
     $params = [];
     foreach ($watchlistMovies as $movie) {
@@ -278,6 +280,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
     $rawMovieInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Make it indexable
     $serverMovieInfo = [];
     foreach ($rawMovieInfo as $rawMovie) {
       $serverMovieInfo[$rawMovie['movie_name'] . '-' . $rawMovie['year']] = $rawMovie;
@@ -286,7 +289,8 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     $movies = [];
     foreach ($watchlistMovies as $movie) {
       $key = $movie['Name'] . '-' . $movie['Year'];
-      if (array_key_exists($key, $serverMovieInfo) && $serverMovieInfo[$key]['status'] !== 'pending') {
+      // If it's uploaded (done) then return the data
+      if (array_key_exists($key, $serverMovieInfo) && $serverMovieInfo[$key]['status'] == 'done') {
         $movieInfo = $serverMovieInfo[$key];
         $movieInfo['countries'] = json_decode($movieInfo['countries']);
         $movieInfo['watched_year'] = substr($movie['Watched Date'], 0, 4);
@@ -305,7 +309,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
     usort($movies, $color_sorting);
 
-    return ['movies' => $movies, 'upload_id' => null, 'upload_count' => 0, 'name' => $list_name ?? $type];
+    return ['movies' => $movies, 'new_ids' => null, 'to_upload' => null, 'name' => $list_name ?? $type];
   }
 
   // If this is a list, map it accordingly
@@ -336,7 +340,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
 
   $toUpload = [];
   $movies = [];
-  $new_ids = [];
+  $newIds = [];
   foreach ($watchlistMovies as $movie) {
     // If it's already in the database then we can return the data directly
     if (array_key_exists($movie['Letterboxd URI'], $serverMovieInfo)) {
@@ -346,8 +350,8 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       // disconnects, but if there was more site traffic there could be more
       // overlap in people uploading things. Hoping that with enough seed data
       // the amount of live fetching we're doing is minimal.
-      if ($movieInfo['status'] == 'pending') {
-        $new_ids[] = $movieInfo['id'];
+      if ($movieInfo['status'] != 'done') {
+        $newIds[] = $movieInfo['id'];
       } else {
         $movieInfo['countries'] = json_decode($movieInfo['countries']);
       }
@@ -368,40 +372,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     }
   }
 
-  if (count($toUpload) > 0) {
-    $placeholders = [];
-    $bindValues = [];
-    foreach ($toUpload as $index => $info) {
-      $placeholders[] = '(' . implode(',', array_fill(0, count($info), '?')) . ')';
-      $bindValues = array_merge($bindValues, $info);
-    }
-
-    $sql = "INSERT INTO movies
-    (letterboxd_url, movie_name, `year`)
-    VALUES " . implode(', ', $placeholders);
-    $stmt = $PDO->prepare($sql);
-    $stmt->execute($bindValues);
-
-    // Keep track of all of the rows that we're now processing
-    $first_id = $PDO->lastInsertId();
-    // Assume they're all sequential?
-    for ($i = 0; $i < count($toUpload); $i++) {
-      $new_ids[] = $first_id + $i;
-    }
-  }
-  // If any of the other IDs
-  $upload_id = null;
-  if (!empty($new_ids)) {
-    $sql = "INSERT INTO upload_tracking
-    (uploaded)
-    VALUES (?)";
-    $stmt = $PDO->prepare($sql);
-    $stmt->execute([json_encode($new_ids)]);
-
-    $upload_id = $PDO->lastInsertId();
-  }
-
   usort($movies, $color_sorting);
 
-  return ['movies' => $movies, 'upload_id' => $upload_id, 'upload_count' => count($new_ids), 'name' => $list_name ?? $type];
+  return ['movies' => $movies, 'new_ids' => $newIds, 'to_upload' => $toUpload, 'name' => $list_name ?? $type];
 }

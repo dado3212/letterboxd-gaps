@@ -8,13 +8,8 @@ PHP website for gaps in Letterboxd watching
 Still very much WIP.
 
 TODO:
-- Username support?
 - Loading bar for .zip drop too
-- Handle .zip uploading not showing new photos (and break dependency on reuploading formdata, jeez)
-- Handle .zip drop
-- Actually show upload progress
 - Time estimates for uploading
-- Actually fix uploading
 - Have a button to select .zip instead of just drag/drop
 - Show some actual text of how to use the website
 - Remove hover animation for list irrelevant options
@@ -22,6 +17,7 @@ TODO:
 - How to handle movie duplicates
 - Clicking off dropdown should auto-close it
 - Fix state memory around multiple interactions
+- Protect the raw exec call of process.php
 
 - Remove single CSV support, only support .zip
 - diary/reviews is slow because name/id isn't indexed
@@ -126,6 +122,16 @@ let total = [];
 document.querySelectorAll('.center img').forEach(img => {
   total.push({id: parseInt(img.getAttribute('data-tmdb')), width: img.width, left: parseInt(img.style.left.slice(0, -2)), top: parseInt(img.style.top.slice(0, -2))});
 });
+```
+
+Examples of weird things:
+```
+var_export(getInfo('https://boxd.it/iEEq', 'Free Solo', '2021'));
+$info = getInfo('https://boxd.it/aPvo', 'Frozen', '2021');
+$info = getInfo('https://boxd.it/2o4Y', 'The Vow', '2012'); // different format of photo
+$info = getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020'); // tv show
+$info = getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020'); // no picture
+$info = getInfo('https://boxd.it/AP3G', 'Emilia Pérez', '2024'); // accent
 ```
 
 ## Previous work to cite

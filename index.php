@@ -14,11 +14,6 @@
                 <div class="title">
                     <div class="header">
                         <div class="normal">Letterboxd</div>
-                        <div class="progress">
-                            <div class="wrapper">
-                                <span class="orange">Let</span><span class="green">ter</span><span class="blue">boxd</span>
-                            </div>
-                        </div>
                     </div>
                     <div class="subtext">GAPS</div>
                 </div>
@@ -145,6 +140,7 @@
                 left: -300vw;
 
                 text-align: center;
+                margin: 15px 0 20px 0;
             }
             #countryInfo h2, #languageInfo h2 {
                 font-family: 'GraphikSemiBold';
@@ -393,14 +389,18 @@
                 }
             });
 
-            function pingHome(cb) {
-                fetch('get_movie_info.php', {
+            function scrapePendingMovies(uploadId, cb) {
+                fetch(`get_movie_info.php?id=${uploadId}`, {
                     method: 'GET',
                 })
                 .then(response => response.text())
                 .then(rawData => {
-                    if (JSON.parse(rawData)['status'] != 'finished') {
-                        pingHome(cb);
+                    const parsedData = JSON.parse(rawData);
+                    if (parsedData['status'] != 'finished') {
+                        if (parsedData['status'] == 'failed') {
+                            console.log(parsedData['error']);
+                        }
+                        scrapePendingMovies(uploadId, cb);
                     } else {
                         // Include all of the images and pictures, and rearrange them
                         console.log('finished');
@@ -575,12 +575,12 @@
 
                 if (Object.keys(movieCountData).length == 0) {
                     countryButton.disabled = true;
-                    countryButton.title = 'This list has no countries you haven\'t seen movies from.';
+                    countryButton.title = 'You\'ve seen movies from all countries represented in this list.';
                 }
 
                 if (Object.keys(movieLanguageCountData).length == 0) {
                     languageButton.disabled = true;
-                    languageButton.title = 'This list has no languages you haven\'t seen movies in.';
+                    languageButton.title = 'You\'ve seen movies in all languages represented in this list.';
                 }
 
                 const svg = document.getElementById('svgMap');
@@ -625,13 +625,13 @@
 
                 if (data['name'] == 'Watched') {
                     document.querySelector('#countryInfo p').innerHTML = `
-                    You haven't seen any movies from these countries.<br />
-                    Clicking a country on the map or in the list on the right will take
-                    you to a full list of movies from that country. Add some to your watchlist!`;
+                    You haven't seen any movies from these countries.
+                    Click a country on the map or in the list on the right to go to a full 
+                    list of movies from that country. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#countryInfo p').innerHTML = `
-                    Some movies in this list are from countries you've never seen anything from.<br />
-                    Clicking a country on the map or in the list on the right will highlight
+                    Some movies in this list are from countries you've never seen anything from.
+                    Click a country on the map or in the list on the right to highlight
                     the movies from that country.`;
                 }
 
@@ -689,13 +689,13 @@
 
                 if (data['name'] == 'Watched') {
                     document.querySelector('#languageInfo p').innerHTML = `
-                    You haven't seen any movies in these languages.<br />
-                    Clicking a language in the list on the right will take
-                    you to a full list of movies in that language. Add some to your watchlist!`;
+                    You haven't seen any movies in these languages.
+                    Click a language in the list on the right to go to a full list 
+                    of movies in that language. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#languageInfo p').innerHTML = `
-                    Some movies in this list are in languages you've never seen anything in.<br />
-                    Clicking a language in the list on the right will highlight
+                    Some movies in this list are in languages you've never seen anything in.
+                    Click a language in the list on the right to highlight
                     the movies in that language.`;
                 }
 
@@ -794,35 +794,24 @@
                 imageWidth = imageWidth - 4;
                 const imageHeight = imageWidth * ratio;
 
-                var styleSheet = document.createElement("style");
-                styleSheet.textContent = `
-                #movies .movie {
-                    width: ${imageWidth}px;
-                    height: ${imageHeight}px;
-                }
-                `;
-                document.head.appendChild(styleSheet);
-
-                if (data.upload_count > 0) {
-                    // Start the process
-                    pingHome(() => {
-                        tryToUpload(formData);
-                    });
-                    // 25% to 81%
-                    const progressBar = document.querySelector('.progress');
-                    progressBar.style.height = '25%';
-
-                    const interval = setInterval(() => {
-                        fetch('poll_status.php?id=' + data.upload_id)
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log(data);
-                            progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
-                            if (data.done == data.total) {
-                                clearTimeout(interval);
-                            }
-                        });
-                    }, 2000);
+                let styleSheet = document.querySelector('#movieStyleSheet');
+                if (styleSheet) {
+                    styleSheet.textContent = `
+                    #movies .movie {
+                        width: ${imageWidth}px;
+                        height: ${imageHeight}px;
+                    }
+                    `;
+                } else {
+                    styleSheet = document.createElement('style');
+                    styleSheet.id = 'movieStyleSheet';
+                    styleSheet.textContent = `
+                    #movies .movie {
+                        width: ${imageWidth}px;
+                        height: ${imageHeight}px;
+                    }
+                    `;
+                    document.head.appendChild(styleSheet);
                 }
 
                 movies.forEach(movie => {
@@ -913,9 +902,11 @@
                 .then(response => response.text())
                 .then(rawData => {
                     let data = JSON.parse(rawData);
-                    // This is a .zip with multiple movies
+
                     allCountries = data.countries;
                     allLanguages = data.languages;
+                    const uploadId = data.upload_id;
+                    const shouldUpload = data.should_upload;
                     data = data.movies;
                     // Set up the list selector, which is composed of two pieces
                     const listSelect = document.getElementById('list-select');
@@ -972,6 +963,29 @@
                         };
                     });
                     swapList(0);
+
+                    if (uploadId) {
+                        if (shouldUpload) {
+                            scrapePendingMovies(uploadId, () => {
+                                tryToUpload(formData);
+                            });
+                        }
+                        // 25% to 81%
+                        const progressBar = document.querySelector('.progress');
+                        progressBar.style.height = '25%';
+
+                        const interval = setInterval(() => {
+                            fetch('poll_status.php?id=' + uploadId)
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data);
+                                progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
+                                if (data.done == data.total) {
+                                    clearTimeout(interval);
+                                }
+                            });
+                        }, 2000);
+                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
