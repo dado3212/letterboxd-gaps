@@ -3,9 +3,11 @@
 Expand your film horizons by analyzing your Letterboxd data! Discover countries and languages you're missing, all while highlighting films by female directors.
 
 <img width="1522" alt="Screenshot 2025-02-17 at 1 51 11 PM" src="https://github.com/user-attachments/assets/c287aa1c-4c74-48c9-a2de-81f45c8ea7f4" />
-<img width="30%" alt="Screenshot 2025-02-17 at 1 51 30 PM" src="https://github.com/user-attachments/assets/a052840c-e5fc-42b3-945a-ab2545ea4011" />
-<img width="30%" alt="Screenshot 2025-02-17 at 1 51 39 PM" src="https://github.com/user-attachments/assets/f2be0fca-80b8-429e-b015-33b3a68832d7" />
-<img width="30%" alt="Screenshot 2025-02-17 at 1 51 52 PM" src="https://github.com/user-attachments/assets/0c50c44a-ba02-41f0-bc91-a097c9c7cbb0" />
+<p align="center">
+<img width="31%" alt="Screenshot 2025-02-17 at 1 51 30 PM" src="https://github.com/user-attachments/assets/a052840c-e5fc-42b3-945a-ab2545ea4011" />
+<img width="31%" alt="Screenshot 2025-02-17 at 1 51 39 PM" src="https://github.com/user-attachments/assets/f2be0fca-80b8-429e-b015-33b3a68832d7" />
+<img width="31%" alt="Screenshot 2025-02-17 at 1 51 52 PM" src="https://github.com/user-attachments/assets/0c50c44a-ba02-41f0-bc91-a097c9c7cbb0" />
+</p>
 
 Drag and drop your Letterboxd output `.zip` file and explore:
 - Watched list
