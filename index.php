@@ -134,8 +134,8 @@
                 <div id="list-select"></div>
                 <div id="numMovies"><span class='filter'>0 out of </span><span class='total'>0</span> movies</div>
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
-                <button class="countries" onclick="countries()">Countries</button>
-                <button class="languages" onclick="languages()">Languages</button>
+                <button class="countries" onclick="clickButton('countries')">Countries</button>
+                <button class="languages" onclick="clickButton('languages')">Languages</button>
                 <button class="help" onclick="showHelp()">?</button>
             </div>
         </div>
@@ -148,7 +148,7 @@
                 <button class="help" onclick="hideHelp()">X</button>
                 <div class="text">
                     <h2>FAQ</h2>
-                    <p>I fully expect that there are a lot of bugs. Check to make sure they're not already covered here, and then <a href="https://github.com/dado3212/letterboxd-gaps/issues/new?template=bug_report.md" target="_blank">file a GitHub issue.</a></p>
+                    <p>I have only tested this on my own devices, so there are probably a lot of bugs. Check to make sure they're not already covered in this FAQ section, and then <a href="https://github.com/dado3212/letterboxd-gaps/issues/new?template=bug_report.md" target="_blank">file a GitHub issue.</a></p>
                     <p><b>Q: Why doesn't Letterboxd Gaps also show which countries or languages I <i>have</i> seen movies for?</b><br>
                         A: While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
                         access for "any usage that recreates current or planned features of our paid subscription tiers". Instead if you want
@@ -494,19 +494,58 @@
                 help.style.display = 'none';
             }
 
+            let currentTab = 'none';
+            function clickButton(tab) {
+                // If countries/languages is open then we need to do something.
+                // No matter what we're closing the open tab.
+                if (currentTab == 'countries') {
+                    document.querySelector('#countryInfo').style.position = 'absolute';
+                } else if (currentTab == 'languages') {
+                    document.querySelector('#languageInfo').style.position = 'absolute';
+                }
+                // Reset the highlighting
+                document.querySelectorAll('.movie').forEach(poster => {
+                    poster.style.opacity = 1.0;
+                });
+                // Clear the female director info
+                document.querySelector('#numMovies .filter').style.display = 'none';
+                showingFemaleDirectors = false;
+                // If we're swapping over to a new tab, then open that
+                if (tab != currentTab) {
+                    if (tab == 'countries') {
+                        document.querySelector('#countryInfo').style.position = 'inherit';
+                    } else if (tab == 'languages') {
+                        document.querySelector('#languageInfo').style.position = 'inherit';
+                    }
+                }
+                // Update which tab we're on
+                if (tab == currentTab) {
+                    currentTab = 'none';
+                } else {
+                    currentTab = tab;
+                }
+            }
+
             let showingFemaleDirectors = false;
             function femaleDirectors() {
                 showingFemaleDirectors = !showingFemaleDirectors;
                 if (showingFemaleDirectors) {
+                    // We can filter down the currently highlighted movies in case you 
+                    // want to, say, highlight Iranian female-directed movies. But when
+                    // you untoggle we will clear all highlighting.
+                    let numHighlighted = 0;
                     document.querySelectorAll('.movie').forEach(poster => {
-                        if (poster.getAttribute('data-female')) {
-                            poster.style.opacity = 1.0;
-                        } else {
-                            poster.style.opacity = 0.2;
+                        if (poster.style.opacity != 0.2) {
+                            if (poster.getAttribute('data-female')) {
+                                numHighlighted += 1;
+                                poster.style.opacity = 1.0;
+                            } else {
+                                poster.style.opacity = 0.2;
+                            }
                         }
                     });
                     const numFilter = document.querySelector('#numMovies .filter');
-                    numFilter.innerHTML = `${document.querySelectorAll('.movie[data-female]').length} out of `;
+                    numFilter.innerHTML = `${numHighlighted} out of `;
                     numFilter.style.display = 'initial';
                 } else {
                     document.querySelectorAll('.movie').forEach(poster => {
@@ -573,6 +612,10 @@
             let diaryLists = new Set();
             let allCountries = {};
             let allLanguages = {};
+
+            // Use this for a one-time scroll on the countries screen just to convey
+            // that you will need to scroll down
+            const hasScrolledCountries = false;
 
             function swapList(index) {
                 const data = allData[index];
@@ -750,6 +793,11 @@
                                 poster.style.opacity = 0.2;
                             }
                         });
+                        // Just indicate to users how this works
+                        if (!hasScrolledCountries) {
+                            document.getElementById('movies').scrollIntoView({ behavior: 'smooth' });
+                            hasScrolledCountries = true;
+                        }
                     }
                 };
 
@@ -826,19 +874,11 @@
                     }
                 }
 
-                // Clear country UI
-                isShowingCountries = false;
-                const countryInfo = document.querySelector('#countryInfo');
-                countryInfo.style.position = 'absolute';
-
-                // Clear language UI
-                isShowingLanguages = false;
-                const languageInfo = document.querySelector('#languageInfo');
-                languageInfo.style.position = 'absolute';
-
-                // Clear gender selector
-                const numFilter = document.querySelector('#numMovies .filter');
-                numFilter.style.display = 'none';
+                // Reset UIs
+                document.querySelector('#countryInfo').style.position = 'absolute';
+                document.querySelector('#languageInfo').style.position = 'absolute';
+                document.querySelector('#numMovies .filter').style.display = 'none';
+                currentTab = 'none';
                 showingFemaleDirectors = false;
 
                 // Clear tippy
@@ -1106,8 +1146,7 @@
                 formData.append('file', file);
 
                 // Make sure that we hide the gender breakdown
-                const numFilter = document.querySelector('#numMovies .filter');
-                numFilter.style.display = 'none';
+                document.querySelector('#numMovies .filter').style.display = 'none';
                 showingFemaleDirectors = false;
 
                 transitionToAnalysis();

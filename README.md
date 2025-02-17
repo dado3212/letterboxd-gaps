@@ -5,11 +5,6 @@ PHP website for gaps in Letterboxd watching
 
 <img width="1311" alt="Screenshot 2025-01-05 at 10 05 21 PM" src="https://github.com/user-attachments/assets/37f4609b-8e40-4d48-bbcc-73a8e3d0a23c" />
 
-Still very much WIP.
-
-TODO:
-- Fix state memory around multiple interactions (click to watchlist, countries, click a country, click to close country, toggle female and then toggle off female directors)
-
 Low pri cleanup
 - Fix README
 - Clean up Thanks page
@@ -20,6 +15,7 @@ Stretch
 - Better animation for gender splits where the posters rearrange
 - Ditto for country selection
 - Live push images as they come?
+- Fix jittering around animating top/left
 - Consolidate polling and get_movie_info
 - Handle some sort of "watched" affordance for breaking down lists
 - Color sorting that matches perception (need to read some more papers around this)
