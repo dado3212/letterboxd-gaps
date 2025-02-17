@@ -120,10 +120,27 @@
                 <button class="gender" onclick="femaleDirectors()">Female Directors</button>
                 <button class="countries" onclick="countries()">Countries</button>
                 <button class="languages" onclick="languages()">Languages</button>
+                <button class="help" onclick="showHelp()">?</button>
             </div>
         </div>
         <div class="made">
            Made by Alex Beals | <a href="./thanks">Thanks</a> | <a href="https://github.com/dado3212/letterboxd-gaps" target="_blank">Github</a> | <a href="https://letterboxd.com/dado3212/list/letterboxd-gaps/">Posters</a>
+        </div>
+
+        <div id="help">
+            <div class="modal">
+                <button class="help" onclick="hideHelp()">X</button>
+                <h2>FAQ</h2>
+                <p><b>Q: Why doesn't Letterboxd Gaps also show which countries or languages I <i>have</i> seen movies for?</b><br>
+                    A: While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
+                    access for "any usage that recreates current or planned features of our paid subscription tiers". Instead if you want
+                    this functionality you can get a <a class="pro" href="https://letterboxd.com/pro/" target="_blank">Pro</a> or <a class="patron" href="https://letterboxd.com/pro/" target="_blank">Patron</a> subscription.
+                </p>
+                <p><b>Q: Why doesn't the size of my list match Letterboxd's?</b><br>
+                    A: To avoid messing up the list appearance the tool automatically removes duplicate movies from the list. This can
+                    lower the count, especially when looking at diary lists.
+                </p>
+            </div>
         </div>
 
         <div id="languageInfo">
@@ -382,31 +399,28 @@
                 });
             });
 
-            // Handle file drop
-            dropArea.addEventListener('drop', event => {
-                const files = event.dataTransfer.files;
+            // Handle file drop and/or select
+            const afterAttempt = (files) => {
                 if (files.length !== 1) {
                     alert('Please upload a valid .zip file.');
                     return;
                 }
                 if (files[0].type === 'application/zip') {
-                    uploadFile(files[0]);
-                } else {
-                    alert(files[0].type + ' is not a .zip');
-                }
-            });
-
-            document.querySelector('#zipInput').addEventListener('change', event => {
-                const files = event.target.files;
-                if (files.length !== 1) {
-                    alert('Please upload a valid .zip file.');
-                    return;
-                }
-                if (files[0].type === 'application/zip') {
-                    uploadFile(files[0]);
+                    if (files[0].name.startsWith('letterboxd-')) {
+                        uploadFile(files[0]);
+                    } else {
+                        alert(`${files[0].name} is not an unmodified Letterboxd export file.`);
+                    }
                 } else {
                     alert(`${files[0].name} is not a zip file.`);
                 }
+            }
+            dropArea.addEventListener('drop', event => {
+                afterAttempt(event.dataTransfer.files);
+            });
+
+            document.querySelector('#zipInput').addEventListener('change', event => {
+                afterAttempt(event.target.files);
             });
 
             function scrapePendingMovies(uploadId, cb) {
@@ -427,6 +441,20 @@
                         cb();
                     }
                 });
+            }
+
+            const help = document.querySelector('#help');
+            help.addEventListener('click', (e) => {
+                if (!document.querySelector('#help .modal').contains(e.target)) {
+                    help.style.display = 'none';
+                }
+            })
+            function showHelp() {
+                help.style.display = 'flex';
+            }
+
+            function hideHelp() {
+                help.style.display = 'none';
             }
 
             let showingFemaleDirectors = false;
@@ -1001,6 +1029,9 @@
                     document.body.addEventListener('click', bodyClickListener);
                     swapList(0);
 
+                    const progressBar = document.querySelector('.nav .progress');
+                    progressBar.style.height = '0%';
+
                     if (uploadId) {
                         if (shouldUpload) {
                             scrapePendingMovies(uploadId, () => {
@@ -1008,7 +1039,6 @@
                             });
                         }
                         // 30% to 81%
-                        const progressBar = document.querySelector('.nav .progress');
                         progressBar.style.height = '30%';
                         const header = document.querySelector('.nav .header');
 

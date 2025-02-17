@@ -10,7 +10,13 @@ Still very much WIP.
 TODO:
 - Fix state memory around multiple interactions (click to watchlist, countries, click a country, click to close country, toggle female and then toggle off female directors)
 - Improve movie hover window aesthetics (include female, countries, language)
-- Set up info tab
+- Mobile disclaimer
+
+Low pri cleanup
+- Fix README
+- Clean up Thanks page
+- Properly separate out CSS and JS into separate files
+- Remove unnecessary SVG map styling rules
 
 Stretch
 - Better animation for gender splits where the posters rearrange
@@ -19,11 +25,6 @@ Stretch
 - Consolidate polling and get_movie_info
 - Handle some sort of "watched" affordance for breaking down lists
 - Color sorting that matches perception (need to read some more papers around this)
-
-Info
-- Include how it works
-- Why duplicates are filtered (and why there therefore may be slight number discrepancies)
-- Why it doesn't include seen info for countries (recreates Pro, link to subscribe)
 
 **secret.php**
 ```

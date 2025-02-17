@@ -22,6 +22,7 @@
 .center-wrapper {
     width: 100%;
     height: 100%;
+    overflow: hidden;
 
     display: flex;
     flex-direction: column;
@@ -405,4 +406,65 @@ html.hover {
     a:hover {
         color: white;
     }
+}
+/** Help **/
+#help {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+}
+#help .modal {
+    width: 500px;
+    height: 300px;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: #89a;
+    color: #2c3440;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    line-height: 1.2em;
+}
+#help .modal h2 {
+    margin-top: 0px
+}
+#help .modal a.pro, #help .modal a.patron {
+    font-family: GraphikSemiBold, sans-serif;
+    text-transform: uppercase;
+    color: white;
+    text-decoration: none;
+    padding: 4px;
+    border-radius: 3px;
+    text-shadow: 0 -1px rgba(0, 0, 0, .3);
+    box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.1);
+}
+#help .modal a.pro {
+    background-color: #ee7000;
+}
+#help .modal a.patron {
+    background-color: #209ce4;
+}
+#help .modal button {
+    all: unset;
+
+    width: 36px;
+    height: 36px;
+
+    position: absolute;
+    right: 10px;
+    top: 10px;
+
+    font-size: 1.3em;
+    line-height: 36px;
+    text-align: center;
+
+    cursor: pointer;
+    user-select: none;
 }
