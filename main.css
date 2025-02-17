@@ -352,15 +352,19 @@ html.hover {
 }
 .made {
     position: fixed;
-    bottom: 15px;
-    left: 15px;
+    bottom: 5px;
+    left: 5px;
     font-family: 'Graphik-Regular-Web', sans-serif;
     font-size: 0.8em;
 
-    opacity: 0.8;
+    background-color: #14181c;
+    padding: 15px;
+    border-radius: 5px;
+
+    color: #afb6be;
 
     a {
-        color: #d8e0e8;
+        color: #afb6be;
         transition: 0.2s ease;
     }
 
