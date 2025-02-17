@@ -20,7 +20,7 @@ if ($id == null) {
   return;
 }
 
-exec('php process.php ' . $id, $output);
+exec('php process.php ' . PROCESS_KEY . ' ' . $id, $output);
 if ($output[0] == 'more' || $output[0] == 'finished') {
   header('Content-Type: application/json');
   echo json_encode([

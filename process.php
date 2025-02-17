@@ -5,6 +5,18 @@ require_once("secret.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Make sure it's called inline
+if (!isset($argv[1]) || $argv[1] !== PROCESS_KEY) {
+  return;
+}
+
+// TODO: This is the upload ID. It's Currently unused, but we should use 
+// this to filter to the IDs that the current user is actually trying to use 
+// (depending on site traffic this may be moot).
+if (!isset($argv[2])) {
+  return;
+}
+
 function getDominantColor($imagePath) {
   $image = imagecreatefromjpeg($imagePath);
   $width = imagesx($image);
@@ -63,12 +75,6 @@ function rgbToHsl($r, $g, $b) {
     's' => $s,
     'l' => $l
   ];
-}
-
-// TODO: Currently unused, but we should use this to filter to the IDs that the current
-// user is actually trying to use (depending on site traffic this may be moot).
-if (!isset($argv[1])) {
-  return;
 }
 
 // Get up to 50 that aren't being worked on right now

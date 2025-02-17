@@ -13,7 +13,6 @@ TODO:
 - Protect the raw exec call of process.php
 - Improve movie hover window aesthetics (include female, countries, language)
 - Set up info tab
-- Set up a cron job to run scrape_countries sporadically
 
 Stretch
 - Better animation for gender splits where the posters rearrange
@@ -27,9 +26,16 @@ Info
 **secret.php**
 ```
 define('TMDB_API_KEY', '<key>');
+define('PROCESS_KEY', '<key2>');
+define('SCRAPE_COUNTRIES_KEY', '<key3>');
 ```
 
 Use `CREATE_DBS.sql` to create the tables.
+
+Crontab to scrape countries/language counts daily:
+```
+00 15 * * * php /var/www/alexbeals.com/public_html/projects/letterboxd/scrape_countries.php <key3>
+```
 
 https://github.com/keplerg/color-extract/blob/main/index.php
 

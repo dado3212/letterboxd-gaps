@@ -5,8 +5,7 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// TODO: Properly set up a cron job to run this sporadically
-if (true) {
+if (!isset($argv[1]) || $argv[1] !== SCRAPE_COUNTRIES_KEY) {
   header('Content-Type: application/json');
   echo json_encode([]);
   return;
