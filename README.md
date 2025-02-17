@@ -9,7 +9,6 @@ Still very much WIP.
 
 TODO:
 - Fix state memory around multiple interactions (click to watchlist, countries, click a country, click to close country, toggle female and then toggle off female directors)
-- Improve movie hover window aesthetics (include female, countries, language)
 
 Low pri cleanup
 - Fix README

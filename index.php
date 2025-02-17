@@ -813,11 +813,11 @@
                     }
                 };
 
-                for (country in movieLanguageCountData) {
-                    if (country in allLanguages) {
+                for (language in movieLanguageCountData) {
+                    if (language in allLanguages) {
                         languageList.innerHTML += `<li>
-                            <a onclick="clickLanguage('${country}');">${allLanguages[country]['full_name']}
-                                <span>${movieLanguageCountData[country].num_movies.toLocaleString()}</span>
+                            <a onclick="clickLanguage('${language}');">${allLanguages[language]['full_name']}
+                                <span>${movieLanguageCountData[language].num_movies.toLocaleString()}</span>
                             </a>
                         </li>`;
                     }
@@ -955,9 +955,30 @@
                     container.appendChild(movieDiv);
                     // Add in the tooltip if the image is too small
                     if (imageWidth < 70) {
+                        let hoverHTML = `<div class="name">${movie.movie_name} `
+                        if (movie.has_female_director) {
+                            hoverHTML += `<span>(${movie.year})<img class="director" src="assets/female_director.svg"/></span></div>`;
+                        } else {
+                            hoverHTML += `(${movie.year})</div>`;
+                        }
+                        if (movie.countries) {
+                            hoverHTML += '<div class="countries">';
+                            const fontSize = Math.min(25, 100 / movie.countries.length);
+                            for (country of movie.countries) {
+                                if (country in svgObject.emojiFlags) {
+                                    hoverHTML += `<span title="${allCountries[country]['full_name']}" style="font-size: ${fontSize}px;">${svgObject.emojiFlags[country]}</span>`;
+                                }
+                            }
+                            hoverHTML += '</div>';
+                        }
+                        if (movie.language && movie.language in allLanguages) {
+                            hoverHTML += `<div class="language">${allLanguages[movie.language]['full_name']}</div>`;
+                        }
+                        hoverHTML += `${movieDiv.innerHTML}`;
+                        
                         tippy(movieDiv, {
                             animation: 'scale',
-                            content: `<b>${movie.movie_name} (${movie.year})</b><br>${movieDiv.innerHTML}`,
+                            content: hoverHTML,
                             allowHTML: true,
                             followCursor: true,
                             duration: 0,
