@@ -1,6 +1,15 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Letterboxd Gaps | Thanks</title>
+    <link rel="icon" type="image/png" href="/projects/letterboxd/assets/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/projects/letterboxd/assets/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/projects/letterboxd/assets/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/projects/letterboxd/assets/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/projects/letterboxd/assets/favicon/site.webmanifest" />
+    
     <style>
       @font-face {
         font-family: Graphik-Regular-Web;
@@ -18,6 +27,13 @@
         transition: 0.3s ease;
         margin: 10px;
         font-family: 'Graphik-Regular-Web', sans-serif;
+        line-height: 1.3em;
+      }
+
+      body {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
       }
 
       a {
@@ -27,29 +43,40 @@
   </head>
   <body>
     <h1>Thanks</h1>
+    This website relies on a lot of data, APIs, public libraries, and other repositories.
+    There is no formal affiliation between this website and any of these or their creators, but wanted
+    to say thanks.
     <h2>Letterboxd</h2>
-    <img src="assets/letterboxd-logo.svg"/>
     <p>
-      All fonts, copyright, data goes to them.
-      There is no affiliation between this website and theirs.
-      Any data mistakes are my own.
-      svgMap.min.js as a modified version of StephanWagner's svgMap.
+      All fonts, colors, and poster images are theirs. Any data mistakes are my own.
+      For rendering the map for the country view I use their version of <code>svgMap.min.js</code>, which
+      in turn is a modified version of StephanWagner's svgMap (see LICENSES).
+      <br /><br />
+      Also just a huge thanks to them for making such a great website and community, I've discovered and enjoyed
+      so many gems that I wouldn't have without its existence.
     </p>
+    <img src="assets/letterboxd-logo.svg" width="200px"/>
     <h2>TMDb</h2>
     <p>
-      All film-related metadata used in Letterboxd, including actor, director and studio names, synopses, release dates, trailers and poster art is supplied by The Movie Database (TMDb).
-
-      <img src="assets/tmdb-logo.svg" width="300px"/>
-      <br />
-
-      This product uses the TMDB API but is not endorsed or certified by TMDB.
+      Letterboxd uses The Movie Database (TMDb), and I also use it for fetching country, language, and female director information.
+      See Letterboxd's <a href="https://letterboxd.com/about/film-data/">page</a> for full information.<br />
+      This product uses the TMDB API but is not endorsed or certified by TMDB.<br /><br />
+      <img src="assets/tmdb-logo.svg" width="150px"/>
     </p>
-    <h2>
-
-    </h2>
+    <h2>Projects/People</h2>
+    <p>
+      <ul>
+        <li><a href="https://jamesbvaughan.com/movie-director-genders/">https://jamesbvaughan.com/movie-director-genders/</a> - An analysis that James did on his own data (Ruby) that prompted me to make this in PHP</li>
+        <li><a href="https://github.com/GoodbyteCo/Directed-By-Women">https://github.com/GoodbyteCo/Directed-By-Women</a> - A broken website that tried to do just the "directed by women" section</li>
+        <li><a href="https://colorboxd.com/">https://colorboxd.com/</a> - A (currently) broken website for color sorting lists that sparked my curiosity in color sorting (though most of that code hasn't yet landed in this repo)</li>
+        <li><a href="https://www.youtube.com/watch?v=pTD0u-O1uvM&t=57m14s">Kirsten Dunst's pitch for actresses to work with female directors</a> - "It's up to us as actresses to give the opportunity to first time directors. Most of those people it was their first time."
+          Being more thoughtful about watching and highlighting movies by female directors is a tiny contribution, but one that I wanted to be more conscious about.
+        </li>
+      </ul>
+    </p>
     <h1>Licenses</h1>
     <p>
-      Through Letterboxd for the map code at <a href="https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca">https://s.ltrbxd.com/static/js/lib/svgMap.min.js</a>
+      Through Letterboxd's map code <a href="https://s.ltrbxd.com/static/js/lib/svgMap.min.js?k=1630db59ca">https://s.ltrbxd.com/static/js/lib/svgMap.min.js</a>:
       <ul>
         <li><a href="https://github.com/ariutta/svg-pan-zoom">svg-pan-zoom</a> | BSD 2-Clause "Simplified" License | Copyright <a href="mailto:a.leofreddi@itcharm.com">Andrea Leofreddi</a></li>
         <li><a href="https://github.com/StephanWagner/svgMap">svgMap</a> | MIT License | Copyright Stephan Wagner | <a href="https://stephanwagner.me" target="_blank">https://stephanwagner.me</a></li>

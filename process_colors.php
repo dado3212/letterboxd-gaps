@@ -5,6 +5,8 @@ require_once("tmdb.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+return;
+
 function getDominantColor($imagePath) {
   $image = imagecreatefromjpeg($imagePath);
   $width = imagesx($image);

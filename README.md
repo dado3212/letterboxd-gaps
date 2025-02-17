@@ -148,7 +148,6 @@ Different:
 ## TODO
 
 Low pri cleanup
-- Clean up Thanks page
 - Properly separate out CSS and JS into separate files
 - Remove unnecessary SVG map styling rules
 

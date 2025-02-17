@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -171,6 +170,17 @@
                     <p><b>Q: Why doesn't the size of my list match Letterboxd's?</b><br>
                         A: To avoid messing up the list appearance the tool automatically removes duplicate movies from the list. This can
                         lower the count, especially when looking at diary lists.
+                    </p>
+                    <p><b>Q: Why don't you include breakdowns of Black directors or AAPI directors or other underrecognized groups?</b><br>
+                        A: All data is pulled from TMDb, which only has gender. If they add race or ethnicity to their API I would love to add it here.
+                    </p>
+                    <p><b>Q: How do I find more films to watch from female directors?</b><br>
+                        A: Here's some lists:
+                        <ul>
+                            <li><a href="https://letterboxd.com/jack/list/women-directors-the-official-top-250-narrative/" target="_blank">Women Directors: The Official Top 250 Narrative Feature Films</a></li>
+                            <li><a href="https://letterboxd.com/thaizy/list/directed-by-women/" target="_blank">Directed by Women</a></li>
+                            <li><a href="https://letterboxd.com/michaelhaneke/list/films-directed-by-women/" target="_blank">Films Directed by Women</a></li>
+                        </ul>
                     </p>
                 </div>
             </div>
