@@ -80,13 +80,18 @@
         position: absolute;
         bottom: 0px;
         width: 100%;
-        overflow: hidden;
 
-        transition: 0.5s ease;
+        clip-path: path('M -100 0 Q -90 5 -80 0 Q -70 5 -60 0 Q -50 5 -40 0 Q -30 5 -20 0 Q -10 5 0 0 Q 5 10 20 0 Q 30 5 40 0 Q 50 5 60 0 Q 70 5 80 0 Q 90 5 100 0 Q 110 5 120 0 Q 130 5 140 0 Q 150 5 160 0 Q 170 5 180 0 Q 190 5 200 0 Q 210 5 220 0 Q 230 5 240 0 Q 250 5 260 0 Q 270 5 280 0 Q 290 5 300 0 Q 310 5 320 0 Q 330 5 340 0 Q 350 5 360 0 Q 370 5 380 0 Q 390 5 400 0 Q 410 5 420 0 Q 430 5 440 0 Q 450 5 460 0 Q 470 5 480 0 Q 490 5 500 0 L 500 0 L 0 500 Z');
+
+        transition: height 0.5s ease;
+
+        animation: cycle 2s linear 0s infinite;
     
         .wrapper {
             position: absolute;
             bottom: 0px;
+
+            animation: cycleReverse 2s linear 0s infinite;
         }
     }
 
@@ -101,6 +106,14 @@
     .orange {
         color: #FF8000;
     }
+}
+@keyframes cycle {
+    from { transform: translateX(-40px); }
+    to { transform: translateX(0px); }
+}
+@keyframes cycleReverse {
+    from { transform: translateX(40px); }
+    to { transform: translateX(0px); }
 }
 .nav {
     display: none;

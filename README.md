@@ -8,7 +8,6 @@ PHP website for gaps in Letterboxd watching
 Still very much WIP.
 
 TODO:
-- Time estimates for uploading
 - Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
 - How to handle movie duplicates
@@ -16,7 +15,7 @@ TODO:
 - Protect the raw exec call of process.php
 - Improve hover aesthetics
 
-- Offset images
+- Offset image disappearance
 - Set up a cron job to run scrape_countries sporadically
 
 Stretch

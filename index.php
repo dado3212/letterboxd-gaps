@@ -596,12 +596,12 @@
 
                 if (Object.keys(movieCountData).length == 0) {
                     countryButton.disabled = true;
-                    countryButton.title = 'You\'ve seen movies from all countries represented in this list.';
+                    countryButton.title = 'You\'ve seen movies from all countries represented by this list.';
                 }
 
                 if (Object.keys(movieLanguageCountData).length == 0) {
                     languageButton.disabled = true;
-                    languageButton.title = 'You\'ve seen movies in all languages represented in this list.';
+                    languageButton.title = 'You\'ve seen movies in all languages represented by this list.';
                 }
 
                 const svg = document.getElementById('svgMap');
@@ -1010,7 +1010,7 @@
                             .then(response => response.json())
                             .then(data => {
                                 console.log(data);
-                                progressBar.style.height = `${25 + (81 - 25) * (data.done / data.total)}%`;
+                                progressBar.style.height = `${30 + (84 - 30) * (data.done / data.total)}%`;
                                 if (data.done == data.total) {
                                     clearTimeout(interval);
                                 }
