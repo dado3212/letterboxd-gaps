@@ -15,7 +15,6 @@ TODO:
 - Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
 - How to handle movie duplicates
-- Clicking off dropdown should auto-close it
 - Fix state memory around multiple interactions
 - Protect the raw exec call of process.php
 

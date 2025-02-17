@@ -883,6 +883,7 @@
                 });
             }
 
+            let bodyClickListener = null;
             function tryToUpload(formData) {
                 const container = document.getElementById('movies');
                 container.innerHTML = '';
@@ -962,6 +963,15 @@
                             group.classList.toggle('opened');
                         };
                     });
+                    if (bodyClickListener != null) {
+                        document.body.removeEventListener('click', bodyClickListener);
+                    }
+                    bodyClickListener = (e) => {
+                        if (listSelect.classList.contains('opened') && !listSelect.contains(e.target)) {
+                            listSelect.classList.remove('opened');
+                        }
+                    };
+                    document.body.addEventListener('click', bodyClickListener);
                     swapList(0);
 
                     if (uploadId) {
