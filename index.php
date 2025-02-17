@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=500, initial-scale=1.0">
         <title>Letterboxd Gaps</title>
         <link rel="stylesheet" type="text/css" href="main.css">
     </head>
@@ -88,14 +88,26 @@
                 ?>
                 <script>
                     // Manually created gallery wall using JS code in READMe
-                    var positions = [{"id":252171,"width":100,"left":121,"top":-247},{"id":843,"width":90,"left":399,"top":-243},{"id":284,"width":60,"left":142,"top":-74},{"id":194,"width":50,"left":288,"top":-235},{"id":9806,"width":100,"left":263,"top":-136},{"id":426,"width":90,"left":5,"top":-99},{"id":1049638,"width":60,"left":16,"top":-211},{"id":38757,"width":80,"left":-242,"top":-53},{"id":693134,"width":100,"left":-77,"top":51},{"id":73723,"width":120,"left":-141,"top":-142},{"id":89,"width":90,"left":-346,"top":30},{"id":10315,"width":90,"left":-89,"top":367},{"id":866398,"width":110,"left":-225,"top":86},{"id":3086,"width":60,"left":34,"top":330},{"id":814340,"width":110,"left":-352,"top":188},{"id":773,"width":80,"left":-75,"top":221},{"id":389,"width":100,"left":-215,"top":287},{"id":86838,"width":100,"left":24,"top":438},{"id":91854,"width":60,"left":168,"top":505},{"id":85350,"width":60,"left":285,"top":362},{"id":60308,"width":90,"left":151,"top":356},{"id":965150,"width":80,"left":390,"top":354},{"id":995771,"width":50,"left":398,"top":499},{"id":1386881,"width":90,"left":269,"top":475},{"id":149870,"width":60,"left":528,"top":331},{"id":394117,"width":90,"left":617,"top":214},{"id":12,"width":100,"left":497,"top":442},{"id":398818,"width":100,"left":622,"top":374},{"id":328387,"width":80,"left":881,"top":80},{"id":372058,"width":90,"left":747,"top":284},{"id":10681,"width":80,"left":871,"top":222},{"id":313369,"width":130,"left":728,"top":70},{"id":20139,"width":100,"left":596,"top":46},{"id":424781,"width":90,"left":789,"top":-78},{"id":121986,"width":120,"left":643,"top":-155},{"id":354275,"width":90,"left":531,"top":-100},{"id":152601,"width":60,"left":540,"top":-215},{"id":110,"width":70,"left":413,"top":-87}];
+                    var positions = [{"i":252171,"w":100,"t":-247,"l":121},{"i":843,"w":90,"t":-243,"r":131},{"i":284,"w":60,"t":-74,"l":142},{"i":194,"w":50,"t":-235,"l":288},{"i":9806,"w":100,"t":-136,"l":263},{"i":426,"w":90,"t":-99,"l":5},{"i":1049638,"w":60,"t":-211,"l":16},{"i":38757,"w":80,"t":-53,"l":-242},{"i":693134,"w":100,"t":51,"l":-77},{"i":73723,"w":120,"t":-142,"l":-141},{"i":89,"w":90,"t":30,"l":-346},{"i":10315,"w":90,"b":-120,"l":-89},{"i":866398,"w":110,"t":86,"l":-225},{"i":3086,"w":70,"b":-48,"l":26},{"i":814340,"w":110,"t":188,"l":-352},{"i":773,"w":80,"b":41,"l":-75},{"i":389,"w":100,"b":-55,"l":-215},{"i":86838,"w":100,"b":-219,"l":24},{"i":91854,"w":60,"b":-213,"l":168},{"i":85350,"w":60,"b":-70,"l":285},{"i":60308,"w":90,"b":-109,"l":151},{"i":965150,"w":80,"b":-92,"r":150},{"i":995771,"w":50,"b":-192,"r":172},{"i":1386881,"w":90,"b":-228,"l":269},{"i":149870,"w":70,"b":-44,"r":22},{"i":394117,"w":90,"b":33,"r":-87},{"i":12,"w":100,"b":-216,"r":22},{"i":398818,"w":100,"b":-142,"r":-102},{"i":328387,"w":80,"t":80,"r":-341},{"i":372058,"w":90,"b":-37,"r":-217},{"i":10681,"w":80,"b":40,"r":-331},{"i":313369,"w":130,"t":70,"r":-238},{"i":20139,"w":100,"t":47,"r":-76},{"i":424781,"w":90,"t":-78,"r":-259},{"i":121986,"w":120,"t":-155,"r":-143},{"i":354275,"w":90,"t":-100,"r":-1},{"i":152601,"w":60,"t":-215,"r":20},{"i":110,"w":70,"t":-87,"r":137}];
                     for (const position of positions) {
-                        const item = document.querySelector(`.center img[data-tmdb="${position.id}"]`);
-                        item.style.width = `${position.width}px`;
-                        item.style.top = `${position.top}px`;
-                        item.style.left = `${position.left}px`;
-                        item.setAttribute('top', position.top);
-                        item.setAttribute('left', position.left);
+                        const item = document.querySelector(`.center img[data-tmdb="${position.i}"]`);
+                        item.style.width = `${position.w}px`;
+                        if ('t' in position) {
+                            item.style.top = `${position.t}px`;
+                            item.setAttribute('top', position.t);
+                        }
+                        if ('b' in position) {
+                            item.style.bottom = `${position.b}px`;
+                            item.setAttribute('bottom', position.b);
+                        }
+                        if ('l' in position) {
+                            item.style.left = `${position.l}px`;
+                            item.setAttribute('left', position.l);
+                        }
+                        if ('r' in position) {
+                            item.style.right = `${position.r}px`;
+                            item.setAttribute('right', position.r);
+                        }
                     }
                 </script>
             </div>

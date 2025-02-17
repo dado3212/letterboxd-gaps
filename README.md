@@ -84,13 +84,26 @@ Truncate table letterboxd.movies
 ```
 const imgs = document.querySelectorAll('.center img');
 let offsetX = 0, offsetY = 0, draggingImg = null;
-    imgs.forEach(img => {
+imgs.forEach(img => {
 
     img.addEventListener('mousedown', (e) => {
         e.preventDefault();
         draggingImg = img;
-        offsetX = e.clientX - img.offsetLeft;
-        offsetY = e.clientY - img.offsetTop;
+        const style = img.style;
+        positionType = {
+            top: style.top !== '',
+            left: style.left !== '',
+            bottom: style.bottom !== '',
+            right: style.right !== ''
+        };
+        console.log(positionType);
+
+        if (positionType.top) offsetY = e.clientY - img.offsetTop;
+        if (positionType.left) offsetX = e.clientX - img.offsetLeft;
+
+        if (positionType.bottom) offsetY = img.parentElement.clientHeight - (e.clientY + img.offsetHeight + parseFloat(style.bottom.slice(0, -2)));
+        if (positionType.right) offsetX = img.parentElement.clientWidth - (e.clientX + img.offsetWidth + parseFloat(style.right.slice(0, -2)));
+
         img.style.cursor = 'grabbing';
     });
 
@@ -98,9 +111,14 @@ let offsetX = 0, offsetY = 0, draggingImg = null;
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!draggingImg) return;
-    draggingImg.style.top = `${e.clientY - offsetY}px`;
-    draggingImg.style.left = `${e.clientX - offsetX}px`;
+  if (!draggingImg) return;
+  const parent = draggingImg.parentElement;
+
+  if (positionType.top) draggingImg.style.top = `${e.clientY - offsetY}px`;
+  if (positionType.left) draggingImg.style.left = `${e.clientX - offsetX}px`;
+
+  if (positionType.bottom) draggingImg.style.bottom = `${parent.clientHeight - (e.clientY + draggingImg.offsetHeight + offsetY)}px`;
+  if (positionType.right) draggingImg.style.right = `${parent.clientWidth - (e.clientX + draggingImg.offsetWidth + offsetX)}px`;
 });
 
 document.addEventListener('mouseup', () => {
@@ -122,10 +140,25 @@ document.addEventListener('keydown', (e) => {
         draggingImg.style.width = `${draggingImg.width - 10}px`;
     }
 });
+```
 
+```
 let total = [];
+const centerRect = document.querySelector('.center').getBoundingClientRect();
 document.querySelectorAll('.center img').forEach(img => {
-  total.push({id: parseInt(img.getAttribute('data-tmdb')), width: img.width, left: parseInt(img.style.left.slice(0, -2)), top: parseInt(img.style.top.slice(0, -2))});
+  const imgRect = img.getBoundingClientRect();
+  let data = {i: parseInt(img.getAttribute('data-tmdb')), w: img.width};
+  if (imgRect.y > centerRect.y + centerRect.height / 2) {
+    data['b'] = Math.floor(centerRect.bottom - imgRect.bottom);
+  } else {
+    data['t'] = Math.floor(imgRect.top - centerRect.top);
+  }
+  if (imgRect.x > centerRect.x + centerRect.width / 2) {
+    data['r'] = Math.floor(centerRect.right - imgRect.right);
+  } else {
+    data['l'] = Math.floor(imgRect.left - centerRect.left);
+  }
+  total.push(data);
 });
 JSON.stringify(total);
 ```
