@@ -43,6 +43,7 @@ function handleZip($file) {
     $lists = [];
     $all_new_ids = [];
     $to_upload = [];
+    $has_pending = false;
     foreach ($files as $file) {
       /*
         Handle
@@ -85,6 +86,7 @@ function handleZip($file) {
         $all_data[] = $result;
       }
       if ($result !== null) {
+        $has_pending = $has_pending || ($result['has_pending'] ?? false);
         foreach ($result['new_ids'] ?? [] as $i) {
           $all_new_ids[$i] = 1;
         }
@@ -116,7 +118,7 @@ function handleZip($file) {
       'countries' => $countries,
       'languages' => $languages,
       'upload_id' => $upload_id,
-      'should_upload' => count($to_upload) > 0,
+      'should_upload' => count($to_upload) > 0 || $has_pending,
     ]);
     return true;
   } else {
@@ -352,6 +354,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
   $toUpload = [];
   $movies = [];
   $newIds = [];
+  $hasPending = false;
   foreach ($watchlistMovies as $movie) {
     // If it's already in the database then we can return the data directly
     if (array_key_exists($movie['Letterboxd URI'], $serverMovieInfo)) {
@@ -363,6 +366,9 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       // the amount of live fetching we're doing is minimal.
       if ($movieInfo['status'] != 'done') {
         $newIds[] = $movieInfo['id'];
+        if ($movieInfo['status'] === 'pending') {
+          $hasPending = true;
+        }
       } else {
         $movieInfo['countries'] = json_decode($movieInfo['countries']);
       }
@@ -380,10 +386,11 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
         'letterboxd_url' => $movie['Letterboxd URI'],
         'status' => 'pending',
       ];
+      $hasPending = true;
     }
   }
 
   usort($movies, $color_sorting);
 
-  return ['movies' => $movies, 'new_ids' => $newIds, 'to_upload' => $toUpload, 'name' => $list_name ?? $type];
+  return ['movies' => $movies, 'new_ids' => $newIds, 'has_pending' => $hasPending, 'to_upload' => $toUpload, 'name' => $list_name ?? $type];
 }

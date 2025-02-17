@@ -784,7 +784,7 @@
                 let countries = {};
                 let languages = {};
 
-                document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString('en-US');
+                document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString();
 
                 function calculateBestFit(w, h, n, ratio) {
                     let bestWidth = 0;
@@ -1007,17 +1007,19 @@
                                 tryToUpload(formData);
                             });
                         }
-                        // 25% to 81%
-                        const progressBar = document.querySelector('.progress');
-                        progressBar.style.height = '25%';
+                        // 30% to 81%
+                        const progressBar = document.querySelector('.nav .progress');
+                        progressBar.style.height = '30%';
+                        const header = document.querySelector('.nav .header');
 
                         const interval = setInterval(() => {
                             fetch('poll_status.php?id=' + uploadId)
                             .then(response => response.json())
                             .then(data => {
-                                console.log(data);
-                                progressBar.style.height = `${30 + (84 - 30) * (data.done / data.total)}%`;
+                                progressBar.style.height = `${30 + (81 - 30) * (data.done / data.total)}%`;
+                                header.title = `Processed ${data.done.toLocaleString()} out of ${data.total.toLocaleString()} movies.`;
                                 if (data.done == data.total) {
+                                    progressBar.style.height = '100%';
                                     clearTimeout(interval);
                                 }
                             });
