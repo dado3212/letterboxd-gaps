@@ -472,8 +472,8 @@
                     setTimeout(() => {
                         document.querySelector('.center-wrapper').style.display = 'none';
                         document.querySelector('.nav').style.display = 'initial';
-                    }, 0); // TODO: Reset this to 2 seconds, and add back in the CSS styling for fading too
-                }, 0); // takes 2s for the images to fade
+                    }, 2000);
+                }, 2000); // takes 2s for the images to fade
             }
 
             let allData = [];
