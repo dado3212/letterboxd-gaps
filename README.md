@@ -1,80 +1,52 @@
-# letterboxd-gaps
-PHP website for gaps in Letterboxd watching
+# <img src="/assets/favicon/favicon-96x96.png?raw=true" height="32px" alt=""/> Letterbox Gaps
 
-<img width="1501" alt="Screenshot 2025-01-04 at 5 00 18 PM" src="https://github.com/user-attachments/assets/57721a07-aada-42fd-b517-9cb962c24883" />
+Expand your film horizons by analyzing your Letterboxd data! Discover countries and languages you're missing, all while highlighting films by female directors.
 
-<img width="1311" alt="Screenshot 2025-01-05 at 10 05 21 PM" src="https://github.com/user-attachments/assets/37f4609b-8e40-4d48-bbcc-73a8e3d0a23c" />
+<img width="1522" alt="Screenshot 2025-02-17 at 1 51 11 PM" src="https://github.com/user-attachments/assets/c287aa1c-4c74-48c9-a2de-81f45c8ea7f4" />
+<img width="33%" alt="Screenshot 2025-02-17 at 1 51 30 PM" src="https://github.com/user-attachments/assets/a052840c-e5fc-42b3-945a-ab2545ea4011" />
+<img width="33%" alt="Screenshot 2025-02-17 at 1 51 39 PM" src="https://github.com/user-attachments/assets/f2be0fca-80b8-429e-b015-33b3a68832d7" />
+<img width="33%" alt="Screenshot 2025-02-17 at 1 51 52 PM" src="https://github.com/user-attachments/assets/0c50c44a-ba02-41f0-bc91-a097c9c7cbb0" />
 
-Low pri cleanup
-- Fix README
-- Clean up Thanks page
-- Properly separate out CSS and JS into separate files
-- Remove unnecessary SVG map styling rules
+Drag and drop your Letterboxd output `.zip` file and explore:
+- Watched list
+  - See which countries you haven't seen any movies from (click to explore the full list on Letterboxd.com!)
+  - See which languages you haven't watched any movies in (ditto!)
+  - See what percentage of your watched movies are from female directors
+- Watchlist/diary/custom lists:
+  - See which movies in the list are from countries you haven't seen movies from
+  - See whcih movies in the lsit are in languages you haven't seen movies in
+  - See which movies in the list are from female directors
 
-Stretch
-- Better animation for gender splits where the posters rearrange
-- Ditto for country selection
-- Live push images as they come?
-- Fix jittering around animating top/left
-- Consolidate polling and get_movie_info
-- Handle some sort of "watched" affordance for breaking down lists
-- Color sorting that matches perception (need to read some more papers around this)
-
-**secret.php**
+## Installation
+Create `letterboxd` as a DB and the four sub-tables using `CREATE_DBS.sql`. Then create a `secret.php` file with the following info:
 ```
-define('TMDB_API_KEY', '<key>');
-define('PROCESS_KEY', '<key2>');
-define('SCRAPE_COUNTRIES_KEY', '<key3>');
+<?php
+	define('TMDB_API_KEY', '<key>');
+	define('PROCESS_KEY', '<key2>');
+	define('SCRAPE_COUNTRIES_KEY', '<key3>');
+
+	// Gets the database
+	function getDatabase() {
+		try {
+			$PDO = new PDO("mysql:host=localhost;dbname=letterboxd;charset=latin1","<username>","<password>");
+			$PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$PDO->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+		} catch (PDOException $e) {
+			echo "PDO MySQL Failed to connect: " . $e->getMessage();
+		}
+
+		return $PDO;
+	}
+?>
 ```
-
-Use `CREATE_DBS.sql` to create the tables.
-
-Crontab to scrape countries/language counts daily:
+Set up a crontab to scrape countries/language counts daily:
 ```
 00 15 * * * php /var/www/alexbeals.com/public_html/projects/letterboxd/scrape_countries.php <key3>
 ```
 
-https://github.com/keplerg/color-extract/blob/main/index.php
+## Home Page UI
 
-Color Science:
-Dominant color via dominant hue - https://www.sciencedirect.com/science/article/pii/S0042698922000840?pes=vor&utm_source=wiley&getft_integrator=wiley
-
-https://onlinelibrary.wiley.com/doi/10.1002/col.22485
-
-25 perceptually distinct colors, which were also displayed in pseudorandom order. These colors were extracted from images using the k-mean clustering algorithm in CAM02-UCS color space. Initial cluster centroid positions (seeds) were selected uniformly at random from the image's color gamut, while the resulting colors were snapped to the nearest color in the image. By using uniformly selected seeds, we were able to extract colors of all color categories in the image. We have tested different sizes of extracted colors (10, 15, 25, 35, 50) and come to the conclusion that 25 colors are sufficient so that no key color is missing and resulted colors are not too similar.
-
-We used parameters recommended by Moroney40 for transforming images from sRGB into CIECAM02 coordinates: LA = 4, white point = D65, Yb = 20, and dim surround.
-
-In total, we computed 137 features, which can be subcategorized into six categories that according to our research review have an impact on perception of prominent colors: color saliency, hue dominance, color coverage, color properties, color diversity, and color span. Within each category, we defined several matrices and used different parameters. To reduce noise in the images and eliminate small variations between neighboring pixels, images were convolved with filter used in S-CIELAB to simulate lower spatial acuity of the HVS,42 before computing the features.
-
-As can be seen from Table 2, three of 10 highly ranked features refer to the color coverage—soft recoloring error, segment soft- and hard-recoloring error. It appears that color coverage is one of the most important factors in the perception of prominent colors. However, all of them include normalization based on the saliency map. This implies that information about color coverage alone is not sufficient and must be adjusted with other factors that are included in saliency models (please note that different saliency models were utilized in these features—Judd and GBVS). In addition, one of these features works on a pixel level, while the other two work on a segment level. It seems that color coverage is important on both dimensions—at lower and higher acuity (resolution).
-
-The next features important for the perception of prominent colors are those concerning a specific color property. The most influential ones are color lightness and chroma. According to our results, the observers on average tend to select colors with a higher mean lightness relative to other colors in the image. In addition, the observers in general selected at least one color with a high chroma value.
-
-This is in line with the analysis of observers' data, which clearly implies that the observers tend to select diverse prominent colors. The weights of both palette diversity features are negative, indicating the negative correlation with the score.
-
-First, during the psychophysical experiment, some observers complained about the limitation of color selection. In particular, some saturated colors were missing or were “washed out.”
-
-It would also be interesting to compare our model with other methods (eg, clustering methods, histogram-based methods) or available solutions (eg, TinEye Lab, Colormind, Canva, Color Thief) for extracting colors from the image.
-
-Only 54%.
-
-http://colormind.io/blog/extracting-colors-from-photos-and-video/ -> Uses a GAN for filtering pallette generation
-https://labs.tineye.com/color/925b7924ef2cae34ff1f9c9041c1f5a23e13a99c?ignore_background=True&ignore_interior_background=True&width=92&height=138&scroll_offset=484
-https://lokeshdhakar.com/projects/color-thief/
-
-six technically defined dimensions of color appearance: brightness (luminance), lightness, colorfulness, chroma, saturation, and hue.
-
-CIECAM02 (maybe https://github.com/primozw/ui-ciecam02-app/tree/main?)
-Brightness is the subjective appearance of how bright an object appears given its surroundings and how it is illuminated. Lightness is the subjective appearance of how light a color appears to be. Colorfulness is the degree of difference between a color and gray. Chroma is the colorfulness relative to the brightness of another color that appears white under similar viewing conditions. This allows for the fact that a surface of a given chroma displays increasing colorfulness as the level of illumination increases. Saturation is the colorfulness of a color relative to its own brightness. Hue is the degree to which a stimulus can be described as similar to or different from stimuli that are described as red, green, blue, and yellow, the so-called unique hues. The colors that make up an object’s appearance are best described in terms of lightness and chroma when talking about the colors that make up the object’s surface, and in terms of brightness, saturation and colorfulness when talking about the light that is emitted by or reflected off the object.
-
-SharpGroteskSmBold-21 for logo font - https://www.sharptype.co/typefaces/sharp-grotesk
-
-https://letterboxd.com/settings/data/ -> Add in a help menu
-
-Truncate table letterboxd.movies
-
-## Home page gallery wall created manually using this code
+The Home page gallery wall was created manually (hence the jank) using this code:
 ```
 const imgs = document.querySelectorAll('.center img');
 let offsetX = 0, offsetY = 0, draggingImg = null;
@@ -136,6 +108,7 @@ document.addEventListener('keydown', (e) => {
 });
 ```
 
+Once done moving around/reisizing the images you can extract the array to write into `index.php` with this script:
 ```
 let total = [];
 const centerRect = document.querySelector('.center').getBoundingClientRect();
@@ -157,19 +130,33 @@ document.querySelectorAll('.center img').forEach(img => {
 JSON.stringify(total);
 ```
 
-Examples of weird letterboxd options:
-```
-getInfo('https://boxd.it/iEEq', 'Free Solo', '2021'));
-getInfo('https://boxd.it/aPvo', 'Frozen', '2021');
-getInfo('https://boxd.it/2o4Y', 'The Vow', '2012'); // different format of photo
-getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020'); // tv show
-getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020'); // no picture
-getInfo('https://boxd.it/AP3G', 'Emilia Pérez', '2024'); // accent
-getInfo('https://letterboxd.com/film/sherlock-the-sign-of-three/', 'Sherlock', '2024'); // has been removed from TMDB
-```
+## Weird Letterboxd Links
 
-## Previous work to cite
-https://jamesbvaughan.com/movie-director-genders/
-https://github.com/GoodbyteCo/Directed-By-Women
-https://womenandhollywood.com/resources/statistics/
-https://colorboxd.com/
+For if you're trying to scrape Letterboxd here are some sample links
+
+Normal:
+* 'https://boxd.it/iEEq', 'Free Solo', '2021'
+* 'https://boxd.it/aPvo', 'Frozen', '2021'
+
+Different:
+* 'https://boxd.it/2o4Y', 'The Vow', '2012'  // different format of photo
+* 'https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020' // TV show
+* 'https://boxd.it/yK2u', 'A Sensorial Ride', '2020' // no picture
+* 'https://boxd.it/AP3G', 'Emilia Pérez', '2024' // accent in title
+* 'https://letterboxd.com/film/sherlock-the-sign-of-three/', 'Sherlock', '2024' // has since been removed form TMDb
+
+## TODO
+
+Low pri cleanup
+- Clean up Thanks page
+- Properly separate out CSS and JS into separate files
+- Remove unnecessary SVG map styling rules
+
+Stretch
+- Better animation for gender splits where the posters rearrange
+- Ditto for country selection
+- Live push images as they come?
+- Fix jittering around animating top/left
+- Consolidate polling and get_movie_info
+- Handle some sort of "watched" affordance for breaking down lists
+- Color sorting that matches perception (need to read some more papers around this)
