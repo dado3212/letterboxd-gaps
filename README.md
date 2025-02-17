@@ -145,17 +145,12 @@ Different:
 * 'https://boxd.it/AP3G', 'Emilia Pérez', '2024' // accent in title
 * 'https://letterboxd.com/film/sherlock-the-sign-of-three/', 'Sherlock', '2024' // has since been removed form TMDb
 
-## TODO
+## Stretch TODO Goals
 
-Low pri cleanup
-- Properly separate out CSS and JS into separate files
-- Remove unnecessary SVG map styling rules
-
-Stretch
 - Better animation for gender splits where the posters rearrange
 - Ditto for country selection
 - Live push images as they come?
-- Fix jittering around animating top/left
+- Fix jittering around animating top/left for transitionToAnalysis
 - Consolidate polling and get_movie_info
 - Handle some sort of "watched" affordance for breaking down lists
 - Color sorting that matches perception (need to read some more papers around this)
