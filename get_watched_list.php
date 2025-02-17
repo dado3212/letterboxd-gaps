@@ -264,6 +264,17 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
   };
 
+  // Dedupe movies (better for uploading and rendering)
+  $deduped = [];
+  foreach ($watchlistMovies as $movie) {
+    $key = $movie['Name'] . '-' . $movie['Year'];
+    if (!isset($deduped[$key])) {
+      $deduped[$key] = $movie;
+    }
+  }
+
+  $watchlistMovies = array_values($deduped);
+
   // These are separately handled because we only have the link to the review,
   // not to the movie. Don't try and upload any as it will be handled by 'watched'.
   if ($type == 'diary' || $type == 'reviews') {

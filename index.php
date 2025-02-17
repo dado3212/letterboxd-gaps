@@ -657,7 +657,7 @@
                     list of movies from that country. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#countryInfo p').innerHTML = `
-                    Some movies in this list are from countries you've never seen anything from.
+                    This shows movies in this list that are from countries you've never seen anything from.
                     Click a country on the map or in the list on the right to highlight
                     the movies from that country.`;
                 }
@@ -721,7 +721,7 @@
                     of movies in that language. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#languageInfo p').innerHTML = `
-                    Some movies in this list are in languages you've never seen anything in.
+                    This shows movies in this list that are in languages you've never seen anything in.
                     Click a language in the list on the right to highlight
                     the movies in that language.`;
                 }
