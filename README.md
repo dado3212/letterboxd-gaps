@@ -8,19 +8,22 @@ PHP website for gaps in Letterboxd watching
 Still very much WIP.
 
 TODO:
-- Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
-- How to handle movie duplicates
+- Remove movie duplicates
 - Fix state memory around multiple interactions (click to watchlist, countries, click a country, click to close country, toggle female and then toggle off female directors)
 - Protect the raw exec call of process.php
-- Improve hover aesthetics
-
-- Offset image disappearance
+- Improve movie hover window aesthetics (include female, countries, language)
+- Set up info tab
 - Set up a cron job to run scrape_countries sporadically
 
 Stretch
 - Better animation for gender splits where the posters rearrange
 - Ditto for country selection
+
+Info
+- Include how it works
+- Why duplicates are filtered
+- Why it doesn't include seen info for countries (recreates Pro, link to subscribe)
 
 **secret.php**
 ```

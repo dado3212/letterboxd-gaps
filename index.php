@@ -475,8 +475,14 @@
             function transitionToAnalysis() {
                 document.querySelector('.made').style.display = 'none';
                 // Fade out the imgs
-                // TODO: Offset them so they stagger
-                document.querySelectorAll('.center img').forEach(img => img.style.opacity = '0%');
+                document.querySelectorAll('.center img').forEach(img => {
+                    // Offset them so it's a staggered effect
+                    const randomOffset = Math.random() * 0.5;
+                    img.style.transition = `top 0.3s, left 0.3s, opacity ${2 - randomOffset}s`;
+                    img.style.transitionDelay = `${randomOffset}s`;
+                    img.style.transitionProperty = 'opacity';
+                    img.style.opacity = '0%';
+                });
                 document.querySelector('.center p').style.opacity = '0%';
 
                 setTimeout(() => {
@@ -494,7 +500,7 @@
                         document.querySelector('.center-wrapper').style.display = 'none';
                         document.querySelector('.nav').style.display = 'initial';
                     }, 2000);
-                }, 2000); // takes 2s for the images to fade
+                }, 1500); // takes 2s for the images to fade
             }
 
             let allData = [];
