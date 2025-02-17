@@ -161,14 +161,15 @@ document.querySelectorAll('.center img').forEach(img => {
 JSON.stringify(total);
 ```
 
-Examples of weird things:
+Examples of weird letterboxd options:
 ```
-var_export(getInfo('https://boxd.it/iEEq', 'Free Solo', '2021'));
-$info = getInfo('https://boxd.it/aPvo', 'Frozen', '2021');
-$info = getInfo('https://boxd.it/2o4Y', 'The Vow', '2012'); // different format of photo
-$info = getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020'); // tv show
-$info = getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020'); // no picture
-$info = getInfo('https://boxd.it/AP3G', 'Emilia Pérez', '2024'); // accent
+getInfo('https://boxd.it/iEEq', 'Free Solo', '2021'));
+getInfo('https://boxd.it/aPvo', 'Frozen', '2021');
+getInfo('https://boxd.it/2o4Y', 'The Vow', '2012'); // different format of photo
+getInfo('https://boxd.it/s1Ym', 'The Queen\'s Gambit', '2020'); // tv show
+getInfo('https://boxd.it/yK2u', 'A Sensorial Ride', '2020'); // no picture
+getInfo('https://boxd.it/AP3G', 'Emilia Pérez', '2024'); // accent
+getInfo('https://letterboxd.com/film/sherlock-the-sign-of-three/', 'Sherlock', '2024'); // has been removed from TMDB
 ```
 
 ## Previous work to cite

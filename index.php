@@ -493,23 +493,24 @@
 
             let showingFemaleDirectors = false;
             function femaleDirectors() {
-                if (!showingFemaleDirectors) {
-                    // Highlight them
-                    document.querySelectorAll('.movie:not([data-female])').forEach(poster => {
-                        poster.style.opacity = 0.2;
+                showingFemaleDirectors = !showingFemaleDirectors;
+                if (showingFemaleDirectors) {
+                    document.querySelectorAll('.movie').forEach(poster => {
+                        if (poster.getAttribute('data-female')) {
+                            poster.style.opacity = 1.0;
+                        } else {
+                            poster.style.opacity = 0.2;
+                        }
                     });
                     const numFilter = document.querySelector('#numMovies .filter');
                     numFilter.innerHTML = `${document.querySelectorAll('.movie[data-female]').length} out of `;
                     numFilter.style.display = 'initial';
                 } else {
-                    // Remove highlighting
-                    document.querySelectorAll('.movie:not([data-female])').forEach(poster => {
+                    document.querySelectorAll('.movie').forEach(poster => {
                         poster.style.opacity = 1.0;
                     });
-                    const numFilter = document.querySelector('#numMovies .filter');
-                    numFilter.style.display = 'none';
+                    document.querySelector('#numMovies .filter').style.display = 'none';
                 }
-                showingFemaleDirectors = !showingFemaleDirectors;
             }
 
             let isShowingCountries = false;
@@ -779,13 +780,12 @@
                 if (data['name'] == 'Watched') {
                     document.querySelector('#languageInfo p').innerHTML = `
                     You haven't seen any movies in these languages.
-                    Click a language in the list on the right to go to a full list 
+                    Click a language in the list to go to a full list 
                     of movies in that language. Add some to your watchlist!`;
                 } else {
                     document.querySelector('#languageInfo p').innerHTML = `
                     This shows movies in this list that are in languages you've never seen anything in.
-                    Click a language in the list on the right to highlight
-                    the movies in that language.`;
+                    Click a language in the list to highlight the movies in that language.`;
                 }
 
                 let currentlySelectedLanguage = null;
@@ -840,11 +840,6 @@
 
                 // Clear tippy
                 const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
-
-                let numTotal = 0;
-                let numWomen = 0;
-                let countries = {};
-                let languages = {};
 
                 document.querySelector('.nav #numMovies .total').innerHTML = movies.length.toLocaleString();
 
@@ -928,29 +923,15 @@
                             </div>
                         `;
                     }
-                    // shorthand for "we have the tmdb info"
-                    if (movie.tmdb_id) {
-                        if (movie.has_female_director) {
-                            numWomen += 1;
-                            movieDiv.setAttribute('data-female', '1');
-                        }
-                        numTotal += 1;
-                        if (movie.language) {
-                            movieDiv.setAttribute('data-language', movie.language);
-                            if (!(movie.language in languages)) {
-                                languages[movie.language] = 0;
-                            }
-                            languages[movie.language] += 1;
-                        }
-                        if (movie.countries) {
-                            movieDiv.setAttribute('data-countries', movie.countries.join(','));
-                            for (const country of movie.countries) {
-                                if (!(country in countries)) {
-                                    countries[country] = 0;
-                                }
-                                countries[country] += 1;
-                            }
-                        }
+                    // Set attributes for filtering later
+                    if (movie.has_female_director) {
+                        movieDiv.setAttribute('data-female', '1');
+                    }
+                    if (movie.language) {
+                        movieDiv.setAttribute('data-language', movie.language);
+                    }
+                    if (movie.countries) {
+                        movieDiv.setAttribute('data-countries', movie.countries.join(','));
                     }
                     container.appendChild(movieDiv);
                     // Add in the tooltip if the image is too small
