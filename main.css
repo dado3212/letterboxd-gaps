@@ -35,6 +35,8 @@
     text-align: center; 
 
     padding: 35px 60px;
+    width: 500px;
+    height: 315px;
 }
 .center .title {
     -webkit-user-select: none;
@@ -44,14 +46,14 @@
     border-radius: 4px;
     position: absolute;
 
-    transition: top 0.3s, left 0.3s, opacity 2s;
+    transition: top 0.3s, left 0.3s, bottom 0.3s, right 0.3s, opacity 2s;
 }
 .center p {
-    width: 500px;
+    width: 400px;
     font-size: 0.9em;
     text-align: center;
     font-family: 'Graphik-Regular-Web', sans-serif;
-    margin-top: 45px;
+    margin: 40px auto 0 auto;
     line-height: 1.3em;
 
     transition: opacity 1s;

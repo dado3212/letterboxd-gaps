@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=500, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Letterboxd Gaps</title>
         <link rel="stylesheet" type="text/css" href="main.css">
     </head>
@@ -19,9 +19,13 @@
                 </div>
                 <p>
                     Expand your film horizons by analyzing your Letterboxd data! Discover countries and languages you're missing, all while highlighting films by female directors.<br><br>
+                    <?php if (preg_match("/(iPhone|iPod|iPad|Android|BlackBerry|Mobile)/i", $_SERVER['HTTP_USER_AGENT'])) { ?>
+                    This currently doesn't support mobile devices.<br>Please visit this website from a desktop computer.
+                    <?php } else { ?>
                     To use go to <a href="https://letterboxd.com/settings/data/" target="_blank">https://letterboxd.com/settings/data/</a> and click "Export&nbsp;Your&nbsp;Data".<br>
                     Then <label for="zipInput">drag and drop</label> the .zip file in this window. 
                     <input type="file" name="zipInput" id="zipInput" />
+                    <?php } ?>
                 </p>
                 <?php
                     require_once("tmdb.php");
@@ -393,10 +397,20 @@
                 dropArea.addEventListener(eventName, () => {
                     dropArea.classList.add('hover');
                     document.querySelectorAll('.center img').forEach(img => {
-                        const top = parseInt(img.getAttribute('top'));
-                        const left = parseInt(img.getAttribute('left'));
-                        img.style.top = (top + (top - 97) * 0.05) + 'px';
-                        img.style.left = (left + (left - 253) * 0.05) + 'px';
+                        if (img.getAttribute('top')) {
+                            const top = parseInt(img.getAttribute('top'));
+                            img.style.top = (top + (top - 97) * 0.05) + 'px';
+                        } else {
+                            const bottom = parseInt(img.getAttribute('bottom'));
+                            img.style.bottom = (bottom + (bottom - 97) * 0.05) + 'px';
+                        }
+                        if (img.getAttribute('left')) {
+                            const left = parseInt(img.getAttribute('left'));
+                            img.style.left = (left + (left - 253) * 0.05) + 'px';
+                        } else {
+                            const right = parseInt(img.getAttribute('right'));
+                            img.style.right = (right + (right - 253) * 0.05) + 'px';
+                        }
                     });
                 });
             });
@@ -405,8 +419,16 @@
                 dropArea.addEventListener(eventName, () => {
                     dropArea.classList.remove('hover');
                     document.querySelectorAll('.center img').forEach(img => {
-                        img.style.top = img.getAttribute('top') + 'px';
-                        img.style.left = img.getAttribute('left') + 'px';
+                        if (img.getAttribute('top')) {
+                            img.style.top = img.getAttribute('top') + 'px';
+                        } else {
+                            img.style.bottom = img.getAttribute('bottom') + 'px';
+                        }
+                        if (img.getAttribute('left')) {
+                            img.style.left = img.getAttribute('left') + 'px';
+                        } else {
+                            img.style.right = img.getAttribute('right') + 'px';
+                        }
                     });
                 });
             });
