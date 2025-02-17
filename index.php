@@ -5,6 +5,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Letterboxd Gaps</title>
+
+        <link rel="icon" type="image/png" href="/projects/letterboxd/assets/favicon/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/projects/letterboxd/assets/favicon/favicon.svg" />
+        <link rel="shortcut icon" href="/projects/letterboxd/assets/favicon/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/projects/letterboxd/assets/favicon/apple-touch-icon.png" />
+        <link rel="manifest" href="/projects/letterboxd/assets/favicon/site.webmanifest" />
+
+        <meta property="og:title" content="Letterboxd Gaps">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://alexbeals.com/projects/letterboxd/">
+        <meta property="og:site_name" content="Letterboxd Gaps">
+        <meta property="og:image" content="/projects/letterboxd/assets/og.png">
+        <meta property="og:description" content="Expand your film horizons by analyzing your Letterboxd data! Discover countries and languages you're missing, all while highlighting films by female directors.">
+
         <link rel="stylesheet" type="text/css" href="main.css">
     </head>
     <body>
@@ -1153,6 +1167,13 @@
 
                 tryToUpload(formData);
             }
+        </script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-M15SP790QM');
         </script>
     </body>
 </html>
