@@ -452,7 +452,6 @@ html.hover {
 }
 #help .modal {
     width: 500px;
-    height: 300px;
     padding: 20px;
     border-radius: 15px;
     background-color: #89a;
@@ -461,8 +460,12 @@ html.hover {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     line-height: 1.2em;
 }
+#help .modal a {
+    color: white;
+    text-decoration: none;
+}
 #help .modal h2 {
-    margin-top: 0px
+    margin-top: 2px;
 }
 #help .modal a.pro, #help .modal a.patron {
     font-family: GraphikSemiBold, sans-serif;
@@ -496,4 +499,8 @@ html.hover {
 
     cursor: pointer;
     user-select: none;
+}
+#help .modal .text {
+    height: 300px;
+    overflow: scroll;
 }

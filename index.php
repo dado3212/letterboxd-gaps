@@ -146,16 +146,19 @@
         <div id="help">
             <div class="modal">
                 <button class="help" onclick="hideHelp()">X</button>
-                <h2>FAQ</h2>
-                <p><b>Q: Why doesn't Letterboxd Gaps also show which countries or languages I <i>have</i> seen movies for?</b><br>
-                    A: While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
-                    access for "any usage that recreates current or planned features of our paid subscription tiers". Instead if you want
-                    this functionality you can get a <a class="pro" href="https://letterboxd.com/pro/" target="_blank">Pro</a> or <a class="patron" href="https://letterboxd.com/pro/" target="_blank">Patron</a> subscription.
-                </p>
-                <p><b>Q: Why doesn't the size of my list match Letterboxd's?</b><br>
-                    A: To avoid messing up the list appearance the tool automatically removes duplicate movies from the list. This can
-                    lower the count, especially when looking at diary lists.
-                </p>
+                <div class="text">
+                    <h2>FAQ</h2>
+                    <p>I fully expect that there are a lot of bugs. Check to make sure they're not already covered here, and then <a href="https://github.com/dado3212/letterboxd-gaps/issues/new?template=bug_report.md" target="_blank">file a GitHub issue.</a></p>
+                    <p><b>Q: Why doesn't Letterboxd Gaps also show which countries or languages I <i>have</i> seen movies for?</b><br>
+                        A: While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
+                        access for "any usage that recreates current or planned features of our paid subscription tiers". Instead if you want
+                        this functionality you can get a <a class="pro" href="https://letterboxd.com/pro/" target="_blank">Pro</a> or <a class="patron" href="https://letterboxd.com/pro/" target="_blank">Patron</a> subscription.
+                    </p>
+                    <p><b>Q: Why doesn't the size of my list match Letterboxd's?</b><br>
+                        A: To avoid messing up the list appearance the tool automatically removes duplicate movies from the list. This can
+                        lower the count, especially when looking at diary lists.
+                    </p>
+                </div>
             </div>
         </div>
 
