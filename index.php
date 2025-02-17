@@ -17,6 +17,12 @@
                     </div>
                     <div class="subtext">GAPS</div>
                 </div>
+                <p>
+                    Expand your film horizons by analyzing your Letterboxd data! Discover countries and languages you're missing, all while highlighting films by female directors.<br><br>
+                    To use go to <a href="https://letterboxd.com/settings/data/" target="_blank">https://letterboxd.com/settings/data/</a> and click "Export&nbsp;Your&nbsp;Data".<br>
+                    Then <label for="zipInput">drag and drop</label> the .zip file in this window. 
+                    <input type="file" name="zipInput" id="zipInput" />
+                </p>
                 <?php
                     require_once("tmdb.php");
 
@@ -39,6 +45,7 @@
                         3086 => ['yellow', 'The Lady Eve'],
                         814340 => ['yellow', 'Cha Cha Real Smooth'],
                         // 212778 => ['yellow', 'Chef'],
+                        89 => ['yellow', 'indiana jones and the last crusade'],
                         773 => ['yellow', 'little miss sunshine'],
                         389 => ['yellow', '12 angry men'],
                         86838 => ['lime green', 'seven psychopaths'],
@@ -81,7 +88,7 @@
                 ?>
                 <script>
                     // Manually created gallery wall using JS code in READMe
-                    var positions = [{"id":252171,"width":70,"left":107,"top":-254},{"id":843,"width":80,"left":312,"top":-254},{"id":284,"width":60,"left":117,"top":-108},{"id":194,"width":60,"left":218,"top":-259},{"id":9806,"width":100,"left":195,"top":-153},{"id":426,"width":80,"left":16,"top":-123},{"id":1049638,"width":70,"left":7,"top":-248},{"id":73723,"width":90,"left":-112,"top":-204},{"id":38757,"width":70,"left":-204,"top":-154},{"id":693134,"width":80,"left":-89,"top":-47},{"id":10315,"width":90,"left":-109,"top":234},{"id":866398,"width":110,"left":-229,"top":-28},{"id":3086,"width":70,"left":11,"top":184},{"id":814340,"width":80,"left":-328,"top":44},{"id":773,"width":70,"left":-90,"top":105},{"id":389,"width":100,"left":-228,"top":163},{"id":86838,"width":80,"left":-2,"top":312},{"id":91854,"width":60,"left":122,"top":347},{"id":85350,"width":60,"left":239,"top":200},{"id":60308,"width":90,"left":112,"top":196},{"id":965150,"width":50,"left":350,"top":362},{"id":995771,"width":100,"left":328,"top":195},{"id":1386881,"width":90,"left":224,"top":318},{"id":149870,"width":70,"left":444,"top":173},{"id":394117,"width":90,"left":528,"top":91},{"id":12,"width":90,"left":444,"top":295},{"id":398818,"width":70,"left":548,"top":243},{"id":328387,"width":60,"left":748,"top":-94},{"id":372058,"width":100,"left":635,"top":152},{"id":10681,"width":90,"left":750,"top":35},{"id":313369,"width":100,"left":632,"top":-22},{"id":20139,"width":90,"left":515,"top":-64},{"id":424781,"width":100,"left":620,"top":-189},{"id":121986,"width":80,"left":515,"top":-211},{"id":354275,"width":90,"left":404,"top":-137},{"id":152601,"width":50,"left":423,"top":-235},{"id":110,"width":60,"left":318,"top":-104}];
+                    var positions = [{"id":252171,"width":100,"left":121,"top":-247},{"id":843,"width":90,"left":399,"top":-243},{"id":284,"width":60,"left":142,"top":-74},{"id":194,"width":50,"left":288,"top":-235},{"id":9806,"width":100,"left":263,"top":-136},{"id":426,"width":90,"left":5,"top":-99},{"id":1049638,"width":60,"left":16,"top":-211},{"id":38757,"width":80,"left":-242,"top":-53},{"id":693134,"width":100,"left":-77,"top":51},{"id":73723,"width":120,"left":-141,"top":-142},{"id":89,"width":90,"left":-346,"top":30},{"id":10315,"width":90,"left":-89,"top":367},{"id":866398,"width":110,"left":-225,"top":86},{"id":3086,"width":60,"left":34,"top":330},{"id":814340,"width":110,"left":-352,"top":188},{"id":773,"width":80,"left":-75,"top":221},{"id":389,"width":100,"left":-215,"top":287},{"id":86838,"width":100,"left":24,"top":438},{"id":91854,"width":60,"left":168,"top":505},{"id":85350,"width":60,"left":285,"top":362},{"id":60308,"width":90,"left":151,"top":356},{"id":965150,"width":80,"left":390,"top":354},{"id":995771,"width":50,"left":398,"top":499},{"id":1386881,"width":90,"left":269,"top":475},{"id":149870,"width":60,"left":528,"top":331},{"id":394117,"width":90,"left":617,"top":214},{"id":12,"width":100,"left":497,"top":442},{"id":398818,"width":100,"left":622,"top":374},{"id":328387,"width":80,"left":881,"top":80},{"id":372058,"width":90,"left":747,"top":284},{"id":10681,"width":80,"left":871,"top":222},{"id":313369,"width":130,"left":728,"top":70},{"id":20139,"width":100,"left":596,"top":46},{"id":424781,"width":90,"left":789,"top":-78},{"id":121986,"width":120,"left":643,"top":-155},{"id":354275,"width":90,"left":531,"top":-100},{"id":152601,"width":60,"left":540,"top":-215},{"id":110,"width":70,"left":413,"top":-87}];
                     for (const position of positions) {
                         const item = document.querySelector(`.center img[data-tmdb="${position.id}"]`);
                         item.style.width = `${position.width}px`;
@@ -379,13 +386,26 @@
             dropArea.addEventListener('drop', event => {
                 const files = event.dataTransfer.files;
                 if (files.length !== 1) {
-                    alert('Please upload a valid .zip or .csv file.');
+                    alert('Please upload a valid .zip file.');
                     return;
                 }
-                if (files[0].type === 'application/zip' || files[0].type === 'text/csv') {
+                if (files[0].type === 'application/zip') {
                     uploadFile(files[0]);
                 } else {
-                    alert(files[0].type + ' is not .csv or .zip');
+                    alert(files[0].type + ' is not a .zip');
+                }
+            });
+
+            document.querySelector('#zipInput').addEventListener('change', event => {
+                const files = event.target.files;
+                if (files.length !== 1) {
+                    alert('Please upload a valid .zip file.');
+                    return;
+                }
+                if (files[0].type === 'application/zip') {
+                    uploadFile(files[0]);
+                } else {
+                    alert(`${files[0].name} is not a zip file.`);
                 }
             });
 
@@ -455,8 +475,9 @@
             function transitionToAnalysis() {
                 document.querySelector('.made').style.display = 'none';
                 // Fade out the imgs
-                // TODO: Offset them
+                // TODO: Offset them so they stagger
                 document.querySelectorAll('.center img').forEach(img => img.style.opacity = '0%');
+                document.querySelector('.center p').style.opacity = '0%';
 
                 setTimeout(() => {
                     // Animate the title up to the top

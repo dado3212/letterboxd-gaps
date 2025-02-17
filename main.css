@@ -30,13 +30,39 @@
 }
 .center {
     position: relative;
+    text-align: center; 
 
+    padding: 35px 60px;
+}
+.center .title {
     -webkit-user-select: none;
     user-select: none;
 }
-.center .title {
-    text-align: center; 
-    padding: 35px 60px;
+.center img {
+    border-radius: 4px;
+    position: absolute;
+
+    transition: top 0.3s, left 0.3s, opacity 2s;
+}
+.center p {
+    width: 500px;
+    font-size: 0.9em;
+    text-align: center;
+    font-family: 'Graphik-Regular-Web', sans-serif;
+    margin-top: 45px;
+    line-height: 1.3em;
+
+    transition: opacity 2s;
+}
+.center p a {
+    color: #00E054;
+}
+.center label:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+#zipInput {
+    display: none;
 }
 .title {
     color: #eff1f2;
@@ -172,12 +198,7 @@ body {
 html.hover {
     background-color: #1c2127;
 }
-.center img {
-    border-radius: 4px;
-    position: absolute;
 
-    transition: top 0.3s, left 0.3s, opacity 2s;
-}
 
 #movies {
     display: flex;

@@ -8,18 +8,14 @@ PHP website for gaps in Letterboxd watching
 Still very much WIP.
 
 TODO:
-- Loading bar for .zip drop too
 - Time estimates for uploading
-- Have a button to select .zip instead of just drag/drop
-- Show some actual text of how to use the website
 - Remove hover animation for list irrelevant options
 - Handle some sort of "watched" affordance for breaking down lists
 - How to handle movie duplicates
-- Fix state memory around multiple interactions
+- Fix state memory around multiple interactions (click to watchlist, countries, click a country, click to close country, toggle female and then toggle off female directors)
 - Protect the raw exec call of process.php
+- Improve hover aesthetics
 
-- Remove single CSV support, only support .zip
-- diary/reviews is slow because name/id isn't indexed
 - Offset images
 - Set up a cron job to run scrape_countries sporadically
 
@@ -121,6 +117,7 @@ let total = [];
 document.querySelectorAll('.center img').forEach(img => {
   total.push({id: parseInt(img.getAttribute('data-tmdb')), width: img.width, left: parseInt(img.style.left.slice(0, -2)), top: parseInt(img.style.top.slice(0, -2))});
 });
+JSON.stringify(total);
 ```
 
 Examples of weird things:
