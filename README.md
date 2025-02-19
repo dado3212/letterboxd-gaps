@@ -147,6 +147,11 @@ Different:
 * 'https://boxd.it/AP3G', 'Emilia Pérez', '2024' // accent in title
 * 'https://letterboxd.com/film/sherlock-the-sign-of-three/', 'Sherlock', '2024' // has since been removed form TMDb
 
+To seed this I used a couple giant lists
+* https://letterboxd.com/sprudelheinz/list/all-the-movies-sorted-by-movie-posters-1/
+* https://letterboxd.com/louiseudo/list/all-the-movies/
+* https://letterboxd.com/annondeon/list/all-movies-receiving-a-vote-in-sight-sound/
+
 ## Stretch TODO Goals
 
 - Better animation for gender splits where the posters rearrange
