@@ -119,8 +119,8 @@ function clickButton(tab) {
         document.querySelector('#languageInfo').style.position = 'absolute';
     }
     // Reset the highlighting
-    document.querySelectorAll('.movie').forEach(poster => {
-        poster.style.opacity = 1.0;
+    document.querySelectorAll('.movie.faded').forEach(poster => {
+        poster.classList.remove('faded');
     });
     // Clear the female director info
     document.querySelector('#numMovies .filter').style.display = 'none';
@@ -149,22 +149,19 @@ function femaleDirectors() {
         // want to, say, highlight Iranian female-directed movies. But when
         // you untoggle we will clear all highlighting.
         let numHighlighted = 0;
-        document.querySelectorAll('.movie').forEach(poster => {
-            if (poster.style.opacity != 0.2) {
-                if (poster.getAttribute('data-female')) {
-                    numHighlighted += 1;
-                    poster.style.opacity = 1.0;
-                } else {
-                    poster.style.opacity = 0.2;
-                }
+        document.querySelectorAll('.movie:not(.faded)').forEach(poster => {
+            if (poster.getAttribute('data-female')) {
+                numHighlighted += 1;
+            } else {
+                poster.classList.add('faded');
             }
         });
         const numFilter = document.querySelector('#numMovies .filter');
         numFilter.innerHTML = `${numHighlighted} out of `;
         numFilter.style.display = 'initial';
     } else {
-        document.querySelectorAll('.movie').forEach(poster => {
-            poster.style.opacity = 1.0;
+        document.querySelectorAll('.movie.faded').forEach(poster => {
+            poster.classList.remove('faded');
         });
         document.querySelector('#numMovies .filter').style.display = 'none';
     }
@@ -394,8 +391,8 @@ function swapList(index) {
         }
 
         if (clickedCountry == currentSelectedCountry || !(clickedCountry in movieCountData)) {
-            document.querySelectorAll('.movie').forEach(poster => {
-                poster.style.opacity = 1.0;
+            document.querySelectorAll('.movie.faded').forEach(poster => {
+                poster.classList.remove('faded');
             });
             currentSelectedCountry = null;
         } else {
@@ -403,9 +400,9 @@ function swapList(index) {
             document.querySelectorAll('.movie').forEach(poster => {
                 const dataCountries = poster.getAttribute('data-countries');
                 if (dataCountries && dataCountries.includes(clickedCountry)) {
-                    poster.style.opacity = 1.0;
+                    poster.classList.remove('faded');
                 } else {
-                    poster.style.opacity = 0.2;
+                    poster.classList.add('faded');
                 }
             });
             // Just indicate to users how this works
@@ -463,7 +460,7 @@ function swapList(index) {
 
         if (clickedLanguage == currentlySelectedLanguage || !(clickedLanguage in movieLanguageCountData)) {
             document.querySelectorAll('.movie').forEach(poster => {
-                poster.style.opacity = 1.0;
+                poster.classList.remove('faded');
             });
             currentlySelectedLanguage = null;
         } else {
@@ -471,9 +468,9 @@ function swapList(index) {
             document.querySelectorAll('.movie').forEach(poster => {
                 const dataLanguage = poster.getAttribute('data-language');
                 if (dataLanguage == clickedLanguage) {
-                    poster.style.opacity = 1.0;
+                    poster.classList.remove('faded');
                 } else {
-                    poster.style.opacity = 0.2;
+                    poster.classList.add('faded');
                 }
             });
         }
