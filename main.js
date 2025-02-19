@@ -81,10 +81,15 @@ function scrapePendingMovies(uploadId, cb) {
     })
     .then(response => response.text())
     .then(rawData => {
-        const parsedData = JSON.parse(rawData);
+        try {
+            const parsedData = JSON.parse(rawData);
+        } catch (error) {
+            alert('Something went wrong while fetching unseen movies. Try again, or file an issue on the Github.');
+        }
         if (parsedData['status'] != 'finished') {
             if (parsedData['status'] == 'failed') {
                 console.log(parsedData['error']);
+                alert('Something went wrong while fetching unseen movies. Try again, or file an issue on the Github.');
             }
             scrapePendingMovies(uploadId, cb);
         } else {
@@ -109,6 +114,8 @@ function hideHelp() {
     help.style.display = 'none';
 }
 
+let currentSelectedCountry = null;
+let currentlySelectedLanguage = null;
 let currentTab = 'none';
 function clickButton(tab) {
     // If countries/languages is open then we need to do something.
@@ -163,6 +170,9 @@ function femaleDirectors() {
         document.querySelectorAll('.movie.faded').forEach(poster => {
             poster.classList.remove('faded');
         });
+        // Because we reset all highlight on uncheck, it's as if we haven't selected a country or language
+        currentSelectedCountry = null;
+        currentlySelectedLanguage = null;
         document.querySelector('#numMovies .filter').style.display = 'none';
     }
 }
@@ -189,7 +199,9 @@ function languages() {
     }
 }
 
+let hasTransitioned = false;
 function transitionToAnalysis() {
+    hasTransitioned = true;
     document.querySelector('.made').style.display = 'none';
     // Fade out the imgs
     document.querySelectorAll('.center img').forEach(img => {
@@ -383,7 +395,6 @@ function swapList(index) {
         the movies from that country.`;
     }
 
-    let currentSelectedCountry = null;
     clickCountry = (clickedCountry) => {
         if (data['name'] == 'Watched') {
             window.open(allCountries[clickedCountry]['url'], '_blank');
@@ -451,7 +462,6 @@ function swapList(index) {
         Click a language in the list to highlight the movies in that language.`;
     }
 
-    let currentlySelectedLanguage = null;
     clickLanguage = (clickedLanguage) => {
         if (data['name'] == 'Watched') {
             window.open(allLanguages[clickedLanguage]['url'], '_blank');
@@ -632,9 +642,17 @@ function swapList(index) {
 }
 
 let bodyClickListener = null;
+let pollingInterval = null;
 function tryToUpload(formData) {
     const container = document.getElementById('movies');
     container.innerHTML = '';
+
+    // Reset the progress bar
+    const progressBar = document.querySelector('.nav .progress');
+    progressBar.style.height = '0%';
+    if (pollingInterval) {
+        clearTimeout(pollingInterval);
+    }
 
     // Clear tippy
     const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
@@ -650,7 +668,12 @@ function tryToUpload(formData) {
     })
     .then(response => response.text())
     .then(rawData => {
-        let data = JSON.parse(rawData);
+        let data;
+        try {
+            data = JSON.parse(rawData);
+        } catch (error) {
+            throw new Error(`Failed to parse JSON: ${rawData}`)
+        }
 
         allCountries = data.countries;
         allLanguages = data.languages;
@@ -722,9 +745,6 @@ function tryToUpload(formData) {
         document.body.addEventListener('click', bodyClickListener);
         swapList(0);
 
-        const progressBar = document.querySelector('.nav .progress');
-        progressBar.style.height = '0%';
-
         if (uploadId) {
             if (shouldUpload) {
                 scrapePendingMovies(uploadId, () => {
@@ -735,7 +755,7 @@ function tryToUpload(formData) {
             progressBar.style.height = '30%';
             const header = document.querySelector('.nav .header');
 
-            const interval = setInterval(() => {
+            pollingInterval = setInterval(() => {
                 fetch('poll_status.php?id=' + uploadId)
                 .then(response => response.json())
                 .then(data => {
@@ -743,7 +763,8 @@ function tryToUpload(formData) {
                     header.title = `Processed ${data.done.toLocaleString()} out of ${data.total.toLocaleString()} movies.`;
                     if (data.done == data.total) {
                         progressBar.style.height = '0%'; // once it's done, reset it
-                        clearTimeout(interval);
+                        clearTimeout(pollingInterval);
+                        pollingInterval = null;
                     }
                 });
             }, 2000);
@@ -751,6 +772,7 @@ function tryToUpload(formData) {
     })
     .catch(error => {
         console.error('Error:', error);
+        alert('Something went wrong while uploading: ' + error);
     });
 }
 

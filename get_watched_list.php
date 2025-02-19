@@ -10,6 +10,12 @@ ini_set('memory_limit', '512M');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
 
+  if ($file['error'] === UPLOAD_ERR_INI_SIZE) {
+    http_response_code(400);
+    echo 'Zip file is too large. Try editing it to remove deleted files or certain lists.';
+    exit;
+  }
+
   if (pathinfo($file['name'], PATHINFO_EXTENSION) === 'zip' && str_starts_with($file['name'], 'letterboxd')) {
     handleZip($file);
   } else {
