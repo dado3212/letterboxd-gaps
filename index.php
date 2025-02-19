@@ -162,11 +162,11 @@
                 <button class="help" onclick="hideHelp()">X</button>
                 <div class="text">
                     <h2>FAQ</h2>
-                    <p>I have only tested this on my own devices, so there are probably a lot of bugs. Check to make sure they're not already covered in this FAQ section, and then <a href="https://github.com/dado3212/letterboxd-gaps/issues/new?template=bug_report.md" target="_blank">file a GitHub issue.</a></p>
-                    <p><b>Q: Why doesn't Letterboxd Gaps also show which countries or languages I <i>have</i> seen movies for?</b><br>
-                        A: While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
-                        access for "any usage that recreates current or planned features of our paid subscription tiers". Instead if you want
-                        this functionality you can get a <a class="pro" href="https://letterboxd.com/pro/" target="_blank">Pro</a> or <a class="patron" href="https://letterboxd.com/pro/" target="_blank">Patron</a> subscription.
+                    <p>I have only tested this on my own devices, so there are probably a lot of bugs. Check to make sure they're not already covered in this FAQ section, and then <a href="https://github.com/dado3212/letterboxd-gaps/issues/new?template=bug_report.md" target="_blank">file a GitHub issue</a>.</p>
+                    <p><b>Q: Why can't I see which countries or languages I <i>have</i> seen movies for?</b><br>
+                        A: This is provided by Letterboxd as part of a <a class="pro" href="https://letterboxd.com/pro/" target="_blank">Pro</a> or <a class="patron" href="https://letterboxd.com/pro/" target="_blank">Patron</a> subscription. 
+                        While Letterboxd Gaps doesn't use the formal Letterboxd API it implicitly uses it through scraping. They (rightfully) deny
+                        access for "any usage that recreates current or planned features of our paid subscription tiers", so this site respects that.
                     </p>
                     <p><b>Q: Why doesn't the size of my list match Letterboxd's?</b><br>
                         A: To avoid messing up the list appearance the tool automatically removes duplicate movies from the list. This can
@@ -176,12 +176,10 @@
                         A: All data is pulled from TMDb, which only has gender. If they add race or ethnicity to their API I would love to add it here.
                     </p>
                     <p><b>Q: How do I find more films to watch from female directors?</b><br>
-                        A: Here's some lists:
-                        <ul>
-                            <li><a href="https://letterboxd.com/jack/list/women-directors-the-official-top-250-narrative/" target="_blank">Women Directors: The Official Top 250 Narrative Feature Films</a></li>
-                            <li><a href="https://letterboxd.com/thaizy/list/directed-by-women/" target="_blank">Directed by Women</a></li>
-                            <li><a href="https://letterboxd.com/michaelhaneke/list/films-directed-by-women/" target="_blank">Films Directed by Women</a></li>
-                        </ul>
+                        A: Here's some lists:<br>
+                        <a href="https://letterboxd.com/jack/list/women-directors-the-official-top-250-narrative/" target="_blank">Women Directors: The Official Top 250 Narrative Feature Films</a><br>
+                        <a href="https://letterboxd.com/thaizy/list/directed-by-women/" target="_blank">Directed by Women</a><br>
+                        <a href="https://letterboxd.com/michaelhaneke/list/films-directed-by-women/" target="_blank">Films Directed by Women</a><br>
                     </p>
                 </div>
             </div>

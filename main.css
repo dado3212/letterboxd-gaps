@@ -451,18 +451,20 @@ html.hover {
     z-index: 3;
 }
 #help .modal {
-    width: 500px;
-    padding: 20px;
+    width: 600px;
+    padding: 40px 25px 40px 40px;
     border-radius: 15px;
     background-color: #89a;
     color: #2c3440;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.4);
     line-height: 1.2em;
 }
 #help .modal a {
     color: white;
-    text-decoration: none;
+}
+#help .modal p {
+    margin-right: 15px;
 }
 #help .modal h2 {
     margin-top: 2px;
