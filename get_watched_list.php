@@ -113,13 +113,14 @@ function handleZip($file) {
     $languages = getLanguageData();
     $upload_id = uploadData($all_new_ids, $to_upload);
     header('Content-Type: application/json');
-    echo json_encode([
+    header('Content-Encoding: gzip');
+    echo gzencode(json_encode([
       'movies' => $all_data,
       'countries' => $countries,
       'languages' => $languages,
       'upload_id' => $upload_id,
       'should_upload' => count($to_upload) > 0 || $has_pending,
-    ]);
+    ]));
     return true;
   } else {
     http_response_code(500);
