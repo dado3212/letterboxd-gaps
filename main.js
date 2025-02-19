@@ -531,27 +531,30 @@ function swapList(index) {
     const ratio = 138/92;
 
     let { imageWidth, _numRows, _numCols } = calculateBestFit(width, height, movies.length, ratio);
-    imageWidth = Math.max(Math.min(imageWidth, 200), 10);
+    imageWidth = Math.max(Math.min(imageWidth, 200), 12);
     imageWidth = imageWidth - 4;
     const imageHeight = imageWidth * ratio;
 
-    let styleSheet = document.querySelector('#movieStyleSheet');
-    if (styleSheet) {
-        styleSheet.textContent = `
+    let textContent = `
         #movies .movie {
             width: ${imageWidth}px;
             height: ${imageHeight}px;
         }
         `;
+    if (imageWidth == 8) { // min, adjust the gap
+        textContent += `
+        #movies {
+          gap: 2px;
+        }
+        `;
+    }
+    let styleSheet = document.querySelector('#movieStyleSheet');
+    if (styleSheet) {
+        styleSheet.textContent = textContent;
     } else {
         styleSheet = document.createElement('style');
         styleSheet.id = 'movieStyleSheet';
-        styleSheet.textContent = `
-        #movies .movie {
-            width: ${imageWidth}px;
-            height: ${imageHeight}px;
-        }
-        `;
+        styleSheet.textContent = textContent;
         document.head.appendChild(styleSheet);
     }
 

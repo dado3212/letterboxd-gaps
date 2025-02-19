@@ -4,6 +4,9 @@ require_once "tmdb.php";
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Best effort. If you're too big, sorry :/
+ini_set('memory_limit', '512M');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
   $file = $_FILES['file'];
 
@@ -177,7 +180,18 @@ function processCsvContent($content, $type = null, $listName = null) {
   $data = array_filter($data);
 
   // Pass processed data to handler
-  return handleMovies($data, $type, $listName);
+  $movies = handleMovies($data, $type, $listName);
+
+  // Unset data that the client doesn't need
+  foreach ($movies['movies'] as &$movie) {
+    unset($movie['primary_color']);
+    unset($movie['status']);
+    unset($movie['imdb_id']);
+    unset($movie['tmdb_id']);
+    unset($movie['id']);
+  }
+
+  return $movies;
 }
 
 function uploadData($allNewIDs, $toUpload) {
@@ -398,8 +412,6 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     $movie['primary_color'] = (float) json_decode($movie['primary_color'] ?? '{"h": 0}', true)['h'];
   }
   usort($movies, $color_sorting);
-
-  $movies = array_slice($movies, 0, 5000);
 
   return ['movies' => $movies, 'new_ids' => $newIds, 'has_pending' => $hasPending, 'to_upload' => $toUpload, 'name' => $list_name ?? $type];
 }
