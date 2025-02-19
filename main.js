@@ -526,13 +526,12 @@ function swapList(index) {
         };
     }
 
-    let centerX, centerY, radiusScale;
     const width = window.innerWidth;
     const height = window.innerHeight - 120.5; // nav height
     const ratio = 138/92;
 
-    let { imageWidth, numRows, numCols } = calculateBestFit(width, height, movies.length, ratio);
-    imageWidth = Math.min(imageWidth, 200);
+    let { imageWidth, _numRows, _numCols } = calculateBestFit(width, height, movies.length, ratio);
+    imageWidth = Math.max(Math.min(imageWidth, 200), 10);
     imageWidth = imageWidth - 4;
     const imageHeight = imageWidth * ratio;
 

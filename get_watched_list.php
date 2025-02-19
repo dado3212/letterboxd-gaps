@@ -262,9 +262,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
   }
 
   $color_sorting = function ($a, $b) {
-    $a_color = (float) json_decode($a['primary_color'] ?? '{"h": 0}', true)['h'];
-    $b_color = (float) json_decode($b['primary_color'] ?? '{"h": 0}', true)['h'];
-    return fmod($a_color + 30, 360) <=> fmod($b_color + 30, 360);
+    return fmod($a['primary_color'] + 30, 360) <=> fmod($b['primary_color'] + 30, 360);
   };
 
   // Dedupe movies (better for uploading and rendering)
@@ -321,6 +319,10 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
       }
     }
 
+    // One-off color index (to avoid continually calling `json_decode` within usort)
+    foreach ($movies as &$movie) {
+      $movie['primary_color'] = (float) json_decode($movie['primary_color'] ?? '{"h": 0}', true)['h'];
+    }
     usort($movies, $color_sorting);
 
     return ['movies' => $movies, 'new_ids' => null, 'to_upload' => null, 'name' => $list_name ?? $type];
@@ -391,7 +393,13 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     }
   }
 
+  // One-off color index (to avoid continually calling `json_decode` within usort)
+  foreach ($movies as &$movie) {
+    $movie['primary_color'] = (float) json_decode($movie['primary_color'] ?? '{"h": 0}', true)['h'];
+  }
   usort($movies, $color_sorting);
+
+  $movies = array_slice($movies, 0, 5000);
 
   return ['movies' => $movies, 'new_ids' => $newIds, 'has_pending' => $hasPending, 'to_upload' => $toUpload, 'name' => $list_name ?? $type];
 }
