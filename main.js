@@ -230,7 +230,7 @@ let allLanguages = {};
 
 // Use this for a one-time scroll on the countries screen just to convey
 // that you will need to scroll down
-const hasScrolledCountries = false;
+let hasScrolledCountries = false;
 
 function swapList(index) {
     const data = allData[index];
@@ -743,7 +743,7 @@ function tryToUpload(formData) {
                     progressBar.style.height = `${30 + (81 - 30) * (data.done / data.total)}%`;
                     header.title = `Processed ${data.done.toLocaleString()} out of ${data.total.toLocaleString()} movies.`;
                     if (data.done == data.total) {
-                        progressBar.style.height = '100%';
+                        progressBar.style.height = '0%'; // once it's done, reset it
                         clearTimeout(interval);
                     }
                 });
