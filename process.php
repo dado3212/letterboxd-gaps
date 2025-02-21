@@ -79,7 +79,11 @@ function rgbToHsl($r, $g, $b) {
 
 // Get up to 50 that aren't being worked on right now
 $PDO = getDatabase();
-$sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status = 'pending' LIMIT 50";
+if (isset($argv[3])) {
+  $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status != 'done' LIMIT 50";
+} else {
+  $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status = 'pending' LIMIT 50";
+}
 $stmt = $PDO->prepare($sql);
 $stmt->execute();
 $movies = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -152,8 +156,8 @@ foreach ($results as $movie) {
     'poster' => $movie['poster'],
     'language' => $movie['language'],
     'imdb_id' => $movie['imdb_id'],
-    'countries' => json_encode(array_values($movie['production_countries'])),
-    'has_female_director' => $movie['has_female_director'] ? 1 : 0,
+    'countries' => $movie['production_countries'] === null ? null : json_encode(array_values($movie['production_countries'])),
+    'has_female_director' => $movie['has_female_director'] === null ? null : ($movie['has_female_director'] ? 1 : 0),
     'primary_color' => $movie['primary_color'],
   ];
   $ids[] = $movie['id'];

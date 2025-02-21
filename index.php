@@ -205,6 +205,7 @@
         <script src="https://unpkg.com/@popperjs/core@2"></script>
         <script src="https://unpkg.com/tippy.js@6"></script>
         <script src="./main.js"></script>
+        <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-M15SP790QM"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

@@ -57,7 +57,7 @@ const afterAttempt = (files) => {
         alert('Please upload a valid .zip file.');
         return;
     }
-    if (files[0].type === 'application/zip') {
+    if (files[0].name.slice(-4) === ".zip") {
         if (files[0].name.startsWith('letterboxd-')) {
             uploadFile(files[0]);
         } else {
@@ -673,6 +673,9 @@ function tryToUpload(formData) {
             data = JSON.parse(rawData);
         } catch (error) {
             throw new Error(`Failed to parse JSON: ${rawData}`)
+        }
+        if (data.movies.length == 0) {
+            throw new Error('ZIP file failed to parse any movies.')
         }
 
         allCountries = data.countries;

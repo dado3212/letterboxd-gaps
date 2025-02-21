@@ -2,7 +2,19 @@
 require_once("secret.php");
 
 function getInfo($letterboxdURL, $movieName, $movieYear) {
-  $letterboxdPage = file_get_contents($letterboxdURL);
+  $letterboxdPage = @file_get_contents($letterboxdURL);
+
+  // Failed to load
+  if ($letterboxdPage === false) {
+    return [
+      'tmdb_id' => null,
+      'poster' => null,
+      'language' => null,
+      'imdb_id' => null,
+      'production_countries' => null,
+      'has_female_director' => null,
+    ];
+  }
 
   $dom = new DOMDocument();
   libxml_use_internal_errors(true); // Suppress parsing warnings for malformed HTML
