@@ -44,7 +44,7 @@ Create `letterboxd` as a DB and the four sub-tables using `CREATE_DBS.sql`. Then
 Set up a crontab to (1) scrape countries/language counts daily and (2) finish uploading for people who quit out of the page too quick (every 6 hours).
 ```
 00 15 * * * php /var/www/alexbeals.com/public_html/projects/letterboxd/scrape_countries.php <key3>
-0 */6 * * * while output=$(php </path/to/>process.php <key2> 1 1); do echo "$output"; [[ "$output" == *"finished"* ]] && break; sleep 1; done
+0 */12 * * * while output=$(php </path/to/>process.php <key2> 1 1); do echo "$output"; [[ "$output" == "more" ]] || break; sleep 1; done
 ```
 
 ## Home Page UI

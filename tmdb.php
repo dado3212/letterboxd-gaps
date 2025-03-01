@@ -24,7 +24,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
   $xpath = new DOMXPath($dom);
 
   $body = $xpath->query('//body')->item(0);
-  preg_match("/.org\/(.*?)\/(\d+)\//", $xpath->query('//a[text()="TMDb"]')->item(0)->getAttribute('href'), $matches); // Finds <a> tags with text content "TMDb"
+  preg_match("/.org\/(.*?)\/(\d+)\//", $xpath->query('//a[translate(text(), "TMDB", "tmdb")="tmdb"]')->item(0)->getAttribute('href'), $matches); // Finds <a> tags with text content "TMDb"
   // TODO: This can throw, not sure which for
   $tmdbType = $matches[1];
   $tmdbId = (int)$matches[2];
@@ -38,7 +38,7 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
   $imdb_tag = $xpath->query('//a[text()="IMDb"]');
   $imdb_fallback = null;
   if ($imdb_tag->length) {
-    preg_match("/\/(tt\d+)\//", $xpath->query('//a[text()="IMDb"]')->item(0)->getAttribute('href'), $imdb_matches); // Finds <a> tags with text content "IMDb"
+    preg_match("/\/(tt\d+)\//", $xpath->query('//a[translate(text(), "IMDB", "imdb")="imdb"]')->item(0)->getAttribute('href'), $imdb_matches); // Finds <a> tags with text content "IMDb"
     $imdb_fallback = $imdb_matches[1];
   }
 
