@@ -10,7 +10,7 @@ if (!isset($argv[1]) || $argv[1] !== PROCESS_KEY) {
   return;
 }
 
-// TODO: This is the upload ID. It's Currently unused, but we should use 
+// TODO: This is the upload ID. It's currently unused, but we should use 
 // this to filter to the IDs that the current user is actually trying to use 
 // (depending on site traffic this may be moot).
 if (!isset($argv[2])) {

@@ -1,8 +1,9 @@
 <?php
 require_once "tmdb.php";
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// If this is uncommented you might break the gzip expectations
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 
 // Best effort. If you're too big, sorry :/
 ini_set('memory_limit', '512M');
@@ -393,7 +394,7 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
           $hasPending = true;
         }
       } else {
-        $movieInfo['countries'] = json_decode($movieInfo['countries']);
+        $movieInfo['countries'] = json_decode($movieInfo['countries'] ?? '[]');
       }
       $movies[] = $movieInfo;
     } else {

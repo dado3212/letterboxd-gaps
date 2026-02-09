@@ -81,10 +81,13 @@ function scrapePendingMovies(uploadId, cb) {
     })
     .then(response => response.text())
     .then(rawData => {
+        let parsedData;
         try {
-            const parsedData = JSON.parse(rawData);
+            parsedData = JSON.parse(rawData);
         } catch (error) {
+            console.log(error);
             alert('Something went wrong while fetching unseen movies. Try again, or file an issue on the Github.');
+            return;
         }
         if (parsedData['status'] != 'finished') {
             if (parsedData['status'] == 'failed') {
