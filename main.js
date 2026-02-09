@@ -91,10 +91,16 @@ function scrapePendingMovies(uploadId, cb) {
         }
         if (parsedData['status'] != 'finished') {
             if (parsedData['status'] == 'failed') {
-                console.log(parsedData['error']);
+                console.log(parsedData);
                 alert('Something went wrong while fetching unseen movies. Try again, or file an issue on the Github.');
+                return;
+            } else if (parsedData['status'] == 'more') {
+                scrapePendingMovies(uploadId, cb);
+            } else {
+                console.log(parsedData);
+                alert('Something went wrong while fetching unseen movies. Try again, or file an issue on the Github.');
+                return;
             }
-            scrapePendingMovies(uploadId, cb);
         } else {
             // Include all of the images and pictures, and rearrange them
             console.log('finished');

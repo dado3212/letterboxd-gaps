@@ -10,15 +10,17 @@ if (!isset($argv[1]) || $argv[1] !== PROCESS_KEY) {
   return;
 }
 
-// TODO: This is the upload ID. It's currently unused, but we should use 
-// this to filter to the IDs that the current user is actually trying to use 
-// (depending on site traffic this may be moot).
+// This is the upload ID. We try and pick from these if they're available.
+// If you're passing in the 3rd parameter this is moot.
 if (!isset($argv[2])) {
   return;
 }
 
 function getDominantColor($imagePath) {
-  $image = imagecreatefromjpeg($imagePath);
+  $image = @imagecreatefromjpeg($imagePath);
+  if ($image == null || $image === false) {
+    return null;
+  }
   $width = imagesx($image);
   $height = imagesy($image);
 
@@ -81,11 +83,28 @@ function rgbToHsl($r, $g, $b) {
 $PDO = getDatabase();
 if (isset($argv[3])) {
   $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status != 'done' LIMIT 50";
+  $stmt = $PDO->prepare($sql);
+  $stmt->execute();
 } else {
-  $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status = 'pending' LIMIT 50";
+  $sql = "
+    SELECT
+      movies.id,
+      movies.letterboxd_url,
+      movies.movie_name,
+      movies.`year`
+    FROM movies
+    LEFT JOIN upload_tracking tracking
+      ON tracking.id = :upload_id
+    WHERE movies.status = 'pending'
+    ORDER BY
+      IFNULL(JSON_CONTAINS(tracking.uploaded, CAST(movies.id AS JSON), '$'), 0) DESC,
+      movies.id ASC
+    LIMIT 50
+  ";
+  $stmt = $PDO->prepare($sql);
+  $stmt->bindValue(":upload_id", $argv[2], PDO::PARAM_INT);
+  $stmt->execute();
 }
-$stmt = $PDO->prepare($sql);
-$stmt->execute();
 $movies = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (empty($movies)) {
@@ -120,8 +139,12 @@ foreach ($movies as $movie) {
     $poster = $result['poster'];
     if ($poster !== null) {
       $rgb = getDominantColor($poster);
-      $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
-      $result['primary_color'] = json_encode($hsl);
+      if ($rgb == null) {
+        $result['primary_color'] = null;
+      } else {
+        $hsl = rgbToHsl($rgb['r'], $rgb['g'], $rgb['b']);
+        $result['primary_color'] = json_encode($hsl);
+      }
     } else {
       $result['primary_color'] = null;
     }
@@ -150,6 +173,9 @@ $updates = []; // Array to hold update values
 $ids = []; // List of IDs to update
 
 foreach ($results as $movie) {
+  if ($movie == null) {
+    continue;
+  }
   $updates[] = [
     'id' => $movie['id'],
     'tmdb_id' => $movie['tmdb_id'],
