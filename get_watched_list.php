@@ -1,9 +1,13 @@
 <?php
 require_once "tmdb.php";
 
-// If this is uncommented you might break the gzip expectations
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
+// Otherwise gzip does weird things
+$ENABLE_LOGGING = false;
+
+if ($ENABLE_LOGGING) {
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
+}
 
 // Best effort. If you're too big, sorry :/
 ini_set('memory_limit', '512M');
@@ -122,15 +126,20 @@ function handleZip($file) {
     $countries = getCountryData();
     $languages = getLanguageData();
     $upload_id = uploadData($all_new_ids, $to_upload);
-    header('Content-Type: application/json');
-    header('Content-Encoding: gzip');
-    echo gzencode(json_encode([
+    $json_data = json_encode([
       'movies' => $all_data,
       'countries' => $countries,
       'languages' => $languages,
       'upload_id' => $upload_id,
       'should_upload' => count($to_upload) > 0 || $has_pending,
-    ]));
+    ]);
+    header('Content-Type: application/json');
+    if ($ENABLE_LOGGING) {
+      echo $json_data;
+    } else {
+      header('Content-Encoding: gzip');
+      echo gzencode($json_data);
+    }
     return true;
   } else {
     http_response_code(500);

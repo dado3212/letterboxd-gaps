@@ -286,7 +286,7 @@ function swapList(index) {
         movieCountData = {...allCountries};
         movieLanguageCountData = {...allLanguages};
         movies.forEach(movie => {
-            if (movie.countries) {
+            if (movie.countries && Array.isArray(movie.countries)) {
                 movie.countries.forEach(country => {
                     if (country in movieCountData) {
                         delete movieCountData[country];

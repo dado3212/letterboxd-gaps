@@ -26,7 +26,9 @@ CREATE TABLE `movies` (
   `countries` json DEFAULT NULL,
   `status` enum('pending','processing','done') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
   `primary_color` json DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_movies_name_year` (`movie_name`,`year`),
+  KEY `idx_movies_letterboxd_url` (`letterboxd_url`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4558 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
