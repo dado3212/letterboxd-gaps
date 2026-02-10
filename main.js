@@ -445,9 +445,7 @@ function swapList(index) {
     for (var i = 0; i < svgCountries.length; i++) {
         const country = svgCountries[i];
 
-        country.addEventListener('click', function(e) {
-            e.preventDefault();
-
+        country.addEventListener('pointerup', function(e) {
             const clickedCountry = country.getAttribute('data-id');
             clickCountry(clickedCountry);
         });
