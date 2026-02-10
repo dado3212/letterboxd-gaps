@@ -13,6 +13,8 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
       'imdb_id' => null,
       'production_countries' => null,
       'has_female_director' => null,
+      'year' => null,
+      'title' => null,
     ];
   }
 
@@ -52,6 +54,8 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'imdb_id' => $imdb_fallback,
         'production_countries' => [],
         'has_female_director' => 0,
+        'year' => null,
+        'title' => null,
       ];
     } else {
       $additionalData = json_decode($data, true);
@@ -74,6 +78,10 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'has_female_director' => count(array_filter($additionalData['credits']['crew'], function ($crewMember) {
           return $crewMember['job'] === 'Director' && $crewMember['gender'] === 1;
         })) > 0,
+        'year' => isset($additionalData['release_date']) && strlen($additionalData['release_date']) > 4
+          ? substr($additionalData['release_date'], 0, 4)
+          : null,
+        'title' => $additionalData['title'],
       ];
     }
   } else {
@@ -86,6 +94,8 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'imdb_id' => $imdb_fallback,
         'production_countries' => [],
         'has_female_director' => 0,
+        'year' => null,
+        'title' => null,
       ];
     } else {
       $additionalData = json_decode($data, true);
@@ -107,6 +117,9 @@ function getInfo($letterboxdURL, $movieName, $movieYear) {
         'has_female_director' => count(array_filter($additionalData['created_by'], function ($crewMember) {
           return $crewMember['gender'] === 1;
         })) > 0,
+        // TODO: Fix
+        'year' => null,
+        'title' => null,
       ];
     }
   }

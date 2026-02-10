@@ -44,7 +44,20 @@ Create `letterboxd` as a DB and the four sub-tables using `CREATE_DBS.sql`. Then
 Set up a crontab to (1) scrape countries/language counts daily and (2) finish uploading for people who quit out of the page too quick (every 6 hours).
 ```
 00 15 * * * php /var/www/alexbeals.com/public_html/projects/letterboxd/scrape_countries.php <key3>
-0 */12 * * * while output=$(php </path/to/>process.php <key2> 1 1); do echo "$output"; [[ "$output" == "more" ]] || break; sleep 1; done
+0 */12 * * * while output=$(php </path/to/>process.php <key2> -1 1); do echo "$output"; [[ "$output" == "more" ]] || break; sleep 1; done
+```
+
+## Maintenance
+Sometimes movies are added before they come out, and release information changes. We can refresh this:
+
+```
+UPDATE letterboxd.movies SET status = 'pending' WHERE `year` REGEXP '^[0-9]{4}$' and CAST(`year` as UNSIGNED) >= <current_year>
+```
+
+Fix script (broken year):
+```
+update letterboxd.movies SET status = 'pending' where `year` = ''
+while output=$(php </path/to/>process.php <key2> -1 fix); do echo "$output"; [[ "$output" == "more" ]] || break; sleep 1; done
 ```
 
 ## Home Page UI

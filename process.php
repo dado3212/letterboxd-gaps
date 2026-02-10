@@ -81,7 +81,12 @@ function rgbToHsl($r, $g, $b) {
 
 // Get up to 50 that aren't being worked on right now
 $PDO = getDatabase();
-if (isset($argv[3])) {
+$fix_run = isset($argv[3]) && $argv[3] === 'fix';
+if ($fix_run) {
+  $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE `year` = '' AND status != 'done' LIMIT 50";
+  $stmt = $PDO->prepare($sql);
+  $stmt->execute();
+} else if (isset($argv[3])) {
   $sql = "SELECT id, letterboxd_url, movie_name, `year` FROM movies WHERE status != 'done' LIMIT 50";
   $stmt = $PDO->prepare($sql);
   $stmt->execute();
@@ -176,7 +181,7 @@ foreach ($results as $movie) {
   if ($movie == null) {
     continue;
   }
-  $updates[] = [
+  $update = [
     'id' => $movie['id'],
     'tmdb_id' => $movie['tmdb_id'],
     'poster' => $movie['poster'],
@@ -186,35 +191,58 @@ foreach ($results as $movie) {
     'has_female_director' => $movie['has_female_director'] === null ? null : ($movie['has_female_director'] ? 1 : 0),
     'primary_color' => $movie['primary_color'],
   ];
+  if ($fix_run) {
+    $update['year'] = $movie['year'];
+    $update['movie_name'] = $movie['title'];
+  }
+  $updates[] = $update;
   $ids[] = $movie['id'];
 }
 
 // Build the `UPDATE` query with `CASE` statements
+$setParts = [
+    "status = 'done'",
+  "tmdb_id = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_1 THEN :tmdb_id_{$u['id']}", $updates)) . "
+  END",
+  "poster = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_2 THEN :poster_{$u['id']}", $updates)) . "
+  END",
+  "language = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_3 THEN :language_{$u['id']}", $updates)) . "
+  END",
+  "imdb_id = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_4 THEN :imdb_id_{$u['id']}", $updates)) . "
+  END",
+  "countries = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_5 THEN :countries_{$u['id']}", $updates)) . "
+  END",
+  "has_female_director = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_6 THEN :has_female_director_{$u['id']}", $updates)) . "
+  END",
+  "primary_color = CASE id
+    " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_7 THEN :primary_color_{$u['id']}", $updates)) . "
+  END",
+];
+if ($fix_run) {
+  $setParts[] = "year = CASE id
+    " . implode("\n", array_map(
+      fn($u) => "WHEN :id_{$u['id']}_9 THEN COALESCE(:year_{$u['id']}, year)",
+      $updates
+    )) . "
+  END";
+
+  $setParts[] = "movie_name = CASE id
+    " . implode("\n", array_map(
+      fn($u) => "WHEN :id_{$u['id']}_10 THEN COALESCE(:movie_name_{$u['id']}, movie_name)",
+      $updates
+    )) . "
+  END";
+}
 $sql = "
   UPDATE letterboxd.movies
   SET
-    status = 'done',
-    tmdb_id = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_1 THEN :tmdb_id_{$u['id']}", $updates)) . "
-    END,
-    poster = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_2 THEN :poster_{$u['id']}", $updates)) . "
-    END,
-    language = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_3 THEN :language_{$u['id']}", $updates)) . "
-    END,
-    imdb_id = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_4 THEN :imdb_id_{$u['id']}", $updates)) . "
-    END,
-    countries = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_5 THEN :countries_{$u['id']}", $updates)) . "
-    END,
-    has_female_director = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_6 THEN :has_female_director_{$u['id']}", $updates)) . "
-    END,
-    primary_color = CASE id
-      " . implode("\n", array_map(fn($u) => "WHEN :id_{$u['id']}_7 THEN :primary_color_{$u['id']}", $updates)) . "
-    END
+    " . implode(",\n    ", $setParts) . "
   WHERE id IN (" . implode(', ', array_map(fn($id) => ":id_{$id}_8", $ids)) . ")
 ";
 
@@ -230,10 +258,32 @@ foreach ($updates as $u) {
   $stmt->bindValue(":countries_{$u['id']}", $u['countries'], PDO::PARAM_STR);
   $stmt->bindValue(":has_female_director_{$u['id']}", $u['has_female_director'], PDO::PARAM_INT);
   $stmt->bindValue(":primary_color_{$u['id']}", $u['primary_color'], PDO::PARAM_STR);
+
+  if ($fix_run) {
+    // allow NULL in binding
+    if ($u['year'] === null) {
+      $stmt->bindValue(":year_{$u['id']}", null, PDO::PARAM_NULL);
+    } else {
+      $stmt->bindValue(":year_{$u['id']}", $u['year'], PDO::PARAM_STR);
+    }
+
+    if ($u['movie_name'] === null) {
+      $stmt->bindValue(":movie_name_{$u['id']}", null, PDO::PARAM_NULL);
+    } else {
+      $stmt->bindValue(":movie_name_{$u['id']}", $u['movie_name'], PDO::PARAM_STR);
+    }
+  }
 }
 for ($i = 1; $i <= 8; $i++) {
   foreach ($ids as $id) {
     $stmt->bindValue(":id_{$id}_{$i}", $id, PDO::PARAM_INT);
+  }
+}
+// Year, Title
+if ($fix_run) {
+  foreach ($ids as $id) {
+    $stmt->bindValue(":id_{$id}_9", $id, PDO::PARAM_INT);
+    $stmt->bindValue(":id_{$id}_10", $id, PDO::PARAM_INT);
   }
 }
 

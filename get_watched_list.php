@@ -2,9 +2,9 @@
 require_once "tmdb.php";
 
 // Otherwise gzip does weird things
-$ENABLE_LOGGING = false;
+define('ENABLE_LOGGING', false);
 
-if ($ENABLE_LOGGING) {
+if (ENABLE_LOGGING) {
   error_reporting(E_ALL);
   ini_set('display_errors', 1);
 }
@@ -58,20 +58,49 @@ function handleZip($file) {
     $all_new_ids = [];
     $to_upload = [];
     $has_pending = false;
+    $watchedIndex = null;
+
+    // Process watched first so diary/reviews can match against it by name-year.
+    foreach ($files as $file) {
+      if ($file['name'] === 'watched.csv') {
+        $result = processCsvContent($file['content'], null, 'Watched');
+        if ($result !== null) {
+          $all_data[] = $result;
+          $watchedIndex = [];
+          foreach ($result['movies'] as $movie) {
+            $key = $movie['movie_name'] . '-' . $movie['year'];
+            if (!array_key_exists($key, $watchedIndex)) {
+              $watchedIndex[$key] = $movie;
+            }
+          }
+          $has_pending = $has_pending || ($result['has_pending'] ?? false);
+          foreach ($result['new_ids'] ?? [] as $i) {
+            $all_new_ids[$i] = 1;
+          }
+          foreach ($result['to_upload'] ?? [] as $u) {
+            $to_upload[$u[1] . '-' . $u[2]] = $u;
+          }
+        }
+        break;
+      }
+    }
+
     foreach ($files as $file) {
       /*
         Handle
-        watched.csv 
+        watched.csv
         diary.csv
         watchlist.csv
         lists/<whatever>
       */
       $result = null;
-      if (str_starts_with($file['name'], 'lists/')) {
-        $result = processCsvContent($file['content']);
+      if ($file['name'] === 'watched.csv') {
+        continue;
+      } else if (str_starts_with($file['name'], 'lists/')) {
+        $result = processCsvContent($file['content'], null, null, $watchedIndex, true);
         $lists[] = $result;
       } else if ($file['name'] === 'diary.csv') {
-        $result = processCsvContent($file['content']);
+        $result = processCsvContent($file['content'], null, null, $watchedIndex, true);
         // Split by year
         $result['name'] = 'All Time';
         $diary[] = $result;
@@ -92,11 +121,8 @@ function handleZip($file) {
             'name' => $year
           ];
         }
-      } else if ($file['name'] === 'watched.csv') {
-        $result = processCsvContent($file['content'], null, 'Watched');
-        $all_data[] = $result;
       } else if ($file['name'] === 'watchlist.csv') {
-        $result = processCsvContent($file['content'], null, 'Watchlist');
+        $result = processCsvContent($file['content'], null, 'Watchlist', $watchedIndex, true);
         $all_data[] = $result;
       }
       if ($result !== null) {
@@ -133,11 +159,11 @@ function handleZip($file) {
       'upload_id' => $upload_id,
       'should_upload' => count($to_upload) > 0 || $has_pending,
     ]);
-    header('Content-Type: application/json');
-    if ($ENABLE_LOGGING) {
+    if (ENABLE_LOGGING) {
       echo $json_data;
     } else {
       header('Content-Encoding: gzip');
+      header('Content-Type: application/json');
       echo gzencode($json_data);
     }
     return true;
@@ -147,7 +173,7 @@ function handleZip($file) {
   }
 }
 
-function processCsvContent($content, $type = null, $listName = null) {
+function processCsvContent($content, $type = null, $listName = null, $watchedIndex = null, $allowDbFallbackForDiary = true) {
   // Source is a string
   $lines = array_map('str_getcsv', explode("\n", $content));
 
@@ -196,7 +222,7 @@ function processCsvContent($content, $type = null, $listName = null) {
   $data = array_filter($data);
 
   // Pass processed data to handler
-  $movies = handleMovies($data, $type, $listName);
+  $movies = handleMovies($data, $type, $listName, $watchedIndex, $allowDbFallbackForDiary);
 
   // Unset data that the client doesn't need
   foreach ($movies['movies'] as &$movie) {
@@ -286,7 +312,7 @@ function getLanguageData() {
 }
 
 // $type = watchlist, diary, reviews, list
-function handleMovies($watchlistMovies, $type, $list_name = null) {
+function handleMovies($watchlistMovies, $type, $list_name = null, $watchedIndex = null, $allowDbFallbackForDiary = true) {
   if (count($watchlistMovies) === 0) {
     return ['movies' => [], 'new_ids' => null, 'to_upload' => null];
   }
@@ -309,32 +335,57 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
   // These are separately handled because we only have the link to the review,
   // not to the movie. Don't try and upload any as it will be handled by 'watched'.
   if ($type == 'diary' || $type == 'reviews') {
-    $params = [];
-    foreach ($watchlistMovies as $movie) {
-      $params[] = $movie['Name'];
-      $params[] =  $movie['Year'];
-    }
-    // Check if the URL has been uploaded to the database already
-    $PDO = getDatabase();
-    $placeholders = implode(' OR ', array_fill(0, count($watchlistMovies), '(movie_name = ? AND year = ?)'));
-    $stmt = $PDO->prepare("SELECT * FROM movies WHERE $placeholders");
-    $stmt->execute($params);
-
-    $rawMovieInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Make it indexable
     $serverMovieInfo = [];
-    foreach ($rawMovieInfo as $rawMovie) {
-      $serverMovieInfo[$rawMovie['movie_name'] . '-' . $rawMovie['year']] = $rawMovie;
+    $toLookupInDb = [];
+    foreach ($watchlistMovies as $movie) {
+      $key = $movie['Name'] . '-' . $movie['Year'];
+      if (
+        !empty($watchedIndex) &&
+        array_key_exists($key, $watchedIndex) &&
+        array_key_exists('countries', $watchedIndex[$key])
+      ) {
+        $serverMovieInfo[$key] = $watchedIndex[$key];
+      } else {
+        $toLookupInDb[] = $movie;
+      }
+    }
+
+    if ($allowDbFallbackForDiary && count($toLookupInDb) > 0) {
+      $params = [];
+      foreach ($toLookupInDb as $movie) {
+        $params[] = $movie['Name'];
+        $params[] =  $movie['Year'];
+      }
+      // Check if the URL has been uploaded to the database already
+      $PDO = getDatabase();
+      $placeholders = implode(' OR ', array_fill(0, count($toLookupInDb), '(movie_name = ? AND year = ?)'));
+      $stmt = $PDO->prepare("SELECT * FROM movies WHERE $placeholders");
+      $stmt->execute($params);
+
+      $rawMovieInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      foreach ($rawMovieInfo as $rawMovie) {
+        $dbKey = $rawMovie['movie_name'] . '-' . $rawMovie['year'];
+        if (!array_key_exists($dbKey, $serverMovieInfo)) {
+          $serverMovieInfo[$dbKey] = $rawMovie;
+        }
+      }
     }
 
     $movies = [];
     foreach ($watchlistMovies as $movie) {
       $key = $movie['Name'] . '-' . $movie['Year'];
       // If it's uploaded (done) then return the data
-      if (array_key_exists($key, $serverMovieInfo) && $serverMovieInfo[$key]['status'] == 'done') {
+      if (
+        array_key_exists($key, $serverMovieInfo) &&
+        (
+          ($serverMovieInfo[$key]['status'] ?? null) == 'done' ||
+          array_key_exists('countries', $serverMovieInfo[$key])
+        )
+      ) {
         $movieInfo = $serverMovieInfo[$key];
-        $movieInfo['countries'] = json_decode($movieInfo['countries']);
+        $movieInfo['countries'] = is_string($movieInfo['countries'] ?? null)
+          ? json_decode($movieInfo['countries'])
+          : ($movieInfo['countries'] ?? []);
         $movieInfo['watched_year'] = substr($movie['Watched Date'], 0, 4);
         $movies[] = $movieInfo;
       } else {
@@ -392,6 +443,13 @@ function handleMovies($watchlistMovies, $type, $list_name = null) {
     // If it's already in the database then we can return the data directly
     if (array_key_exists($movie['Letterboxd URI'], $serverMovieInfo)) {
       $movieInfo = $serverMovieInfo[$movie['Letterboxd URI']];
+      // If it's the watchlist, override the name and year with the local version. This allows
+      // the lookup into watchlist from year and name from diary to work.
+      if ($type === 'watchlist') {
+        $movieInfo['movie_name'] = $movie['Name'];
+        $movieInfo['year'] = $movie['Year'];
+      }
+
       // But if it's already in the database but it's still pending, then add it
       // to the new ids list for the purpose of polling. Should only apply to
       // disconnects, but if there was more site traffic there could be more
