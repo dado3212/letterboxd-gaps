@@ -174,8 +174,16 @@ function handleZip($file) {
 }
 
 function processCsvContent($content, $type = null, $listName = null, $watchedIndex = null, $allowDbFallbackForDiary = true) {
-  // Source is a string
-  $lines = array_map('str_getcsv', explode("\n", $content));
+  // Source is a string. Parse as a stream rather than splitting on "\n" first,
+  // so quoted fields containing newlines (e.g. list descriptions) stay intact.
+  $stream = fopen('php://temp', 'r+');
+  fwrite($stream, $content);
+  rewind($stream);
+  $lines = [];
+  while (($row = fgetcsv($stream, null, ',', '"', '')) !== false) {
+    $lines[] = $row;
+  }
+  fclose($stream);
 
   // Separate headers and rows
   $headers = array_shift($lines);

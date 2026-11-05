@@ -2,8 +2,8 @@
 require_once("tmdb.php");
 require_once("secret.php");
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
   $PDO = getDatabase();

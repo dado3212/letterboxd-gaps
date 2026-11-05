@@ -2,8 +2,8 @@
 require_once("tmdb.php");
 require_once("secret.php");
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 
 // Make sure it's called inline
 if (!isset($argv[1]) || $argv[1] !== PROCESS_KEY) {
