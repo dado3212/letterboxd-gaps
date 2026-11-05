@@ -243,6 +243,7 @@ function transitionToAnalysis() {
 
 let allData = [];
 let diaryLists = new Set();
+let currentListIndex = 0;
 let allCountries = {};
 let allLanguages = {};
 
@@ -251,6 +252,7 @@ let allLanguages = {};
 let hasScrolledCountries = false;
 
 function swapList(index) {
+    currentListIndex = index;
     const data = allData[index];
 
     const countryButton = document.querySelector('button.countries');
@@ -273,8 +275,9 @@ function swapList(index) {
 
     movies = data.movies;
 
+    // Build it before you swap it to avoid flashing black
     const container = document.getElementById('movies');
-    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
     // Set up map
     // If you're viewing your watched list, this is all countries you haven't seen
@@ -607,7 +610,7 @@ function swapList(index) {
         if (movie.countries) {
             movieDiv.setAttribute('data-countries', movie.countries.join(','));
         }
-        container.appendChild(movieDiv);
+        fragment.appendChild(movieDiv);
         // Add in the tooltip if the image is too small
         if (imageWidth < 70) {
             let hoverHTML = `<div class="name">${movie.movie_name} `
@@ -642,6 +645,8 @@ function swapList(index) {
         }
     });
 
+    container.replaceChildren(fragment);
+
     // And make it so the new images can't be dragged
     document.querySelectorAll('img').forEach(img => {
         img.ondragstart = function() { return false; };
@@ -650,9 +655,10 @@ function swapList(index) {
 
 let bodyClickListener = null;
 let pollingInterval = null;
-function tryToUpload(formData) {
-    const container = document.getElementById('movies');
-    container.innerHTML = '';
+function tryToUpload(formData, isRefresh = false) {
+    if (!isRefresh) {
+        document.getElementById('movies').innerHTML = '';
+    }
 
     // Reset the progress bar
     const progressBar = document.querySelector('.nav .progress');
@@ -665,10 +671,12 @@ function tryToUpload(formData) {
     const tippyRoot = document.querySelector('div[data-tippy-root')?.remove();
 
     // Set up the list selection (hide it by default until we know how many we're dealing with)
-    const listSelect = document.getElementById('list-select');
-    listSelect.innerHTML = '';
-    listSelect.style.display = 'none';
-    
+    if (!isRefresh) {
+        const listSelect = document.getElementById('list-select');
+        listSelect.innerHTML = '';
+        listSelect.style.display = 'none';
+    }
+
     fetch('get_watched_list.php', {
         method: 'POST',
         body: formData
@@ -753,12 +761,21 @@ function tryToUpload(formData) {
             }
         };
         document.body.addEventListener('click', bodyClickListener);
-        swapList(0);
+        // On refresh, stay on whichever list the user was viewing
+        let startIndex = 0;
+        if (isRefresh && currentListIndex < allData.length) {
+            startIndex = currentListIndex;
+            const entry = document.querySelector(`#list-select .dropdown div[data-list="${startIndex}"]`);
+            if (entry) {
+                selected.innerHTML = entry.innerHTML;
+            }
+        }
+        swapList(startIndex);
 
         if (uploadId) {
             if (shouldUpload) {
                 scrapePendingMovies(uploadId, () => {
-                    tryToUpload(formData);
+                    tryToUpload(formData, true);
                 });
             }
             // 30% to 81%
